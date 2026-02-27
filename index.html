@@ -130,30 +130,60 @@
         </header>
         );
 
-        const ResultCard = ({ method, price, isBest }) => (
-        <div className={`relative p-5 rounded-lg border transition-shadow hover:shadow-md bg-white ${isBest ? 'border-green-400 bg-green-50' : 'border-gray-200'}`}>
-            {isBest && (
-            <span className="absolute top-2 right-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full border border-green-200">
-                Opción más económica
-            </span>
-            )}
-            <h3 className="font-bold text-gray-900 text-lg mb-1 flex items-center">
-                {method.medioCobro} <span className="text-sm font-normal text-gray-500 ml-2">({method.medioPago})</span>
-            </h3>
-            <div className="text-3xl font-bold text-gray-800 mb-2">
-            {price > 0 ? formatCurrency(price) : '$0.00'}
-            </div>
-            <div className="text-sm text-gray-600 flex items-center gap-1">
-            <LucideIcon name="Calendar" size={14} className="text-gray-400" />
-            <span>Días para cobrar: {method.diasAcreditacion}</span>
-            </div>
-            {method.instrucciones && (
-                <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                    {method.instrucciones}
+        const ResultCard = ({ method, price, effectiveCommission, isBestOverall, isBestInCategory }) => {
+            // Determine border and background based on highlight type
+            let cardClass = "relative p-5 rounded-lg border transition-shadow hover:shadow-md bg-white";
+            let badgeClass = "";
+            let badgeText = "";
+
+            if (isBestOverall) {
+                cardClass += " border-green-400 bg-green-50";
+                badgeClass = "bg-green-100 text-green-700 border-green-200";
+                badgeText = "Opción más económica";
+            } else if (isBestInCategory) {
+                cardClass += " border-yellow-400 bg-yellow-50";
+                badgeClass = "bg-yellow-100 text-yellow-800 border-yellow-300";
+                badgeText = "Mejor opción en su tipo";
+            } else {
+                cardClass += " border-gray-200";
+            }
+
+            return (
+                <div className={cardClass}>
+                    {(isBestOverall || isBestInCategory) && (
+                    <span className={`absolute top-2 right-2 px-2 py-0.5 text-xs font-bold rounded-full border ${badgeClass}`}>
+                        {badgeText}
+                    </span>
+                    )}
+                    <h3 className="font-bold text-gray-900 text-lg mb-1 flex flex-col sm:flex-row sm:items-center">
+                        {method.medioCobro}
+                        <span className="text-sm font-normal text-gray-500 sm:ml-2">({method.medioPago})</span>
+                    </h3>
+                    <div className="text-3xl font-bold text-gray-800 mb-2 mt-2">
+                    {price > 0 ? formatCurrency(price) : '$0.00'}
+                    </div>
+                    <div className="space-y-1 mt-3">
+                        <div className="text-sm text-gray-600 flex items-center gap-2">
+                            <LucideIcon name="Calendar" size={14} className="text-gray-400" />
+                            <span>Días para cobrar: {method.diasAcreditacion}</span>
+                        </div>
+                        <div className="text-sm text-gray-600 flex items-center gap-2">
+                            <LucideIcon name="CreditCard" size={14} className="text-gray-400" />
+                            <span>Cuotas: {method.cuotas}</span>
+                        </div>
+                        <div className="text-sm text-gray-600 flex items-center gap-2">
+                            <LucideIcon name="Percent" size={14} className="text-gray-400" />
+                            <span>Comisión total: {effectiveCommission.toFixed(2)}%</span>
+                        </div>
+                    </div>
+                    {method.instrucciones && (
+                        <div className="mt-4 pt-3 border-t border-gray-200/50 text-xs text-gray-600 italic">
+                            {method.instrucciones}
+                        </div>
+                    )}
                 </div>
-            )}
-        </div>
-        );
+            );
+        };
 
         const CalculatorView = ({ methods }) => {
         const [amount, setAmount] = useState('');
@@ -178,18 +208,45 @@
             );
 
             const grouped = {};
+            let overallBestPrice = Infinity;
 
             filteredMethods.forEach(method => {
-            const price = calculatePrice(netAmount, method);
-            if (!grouped[method.cuotas]) {
-                grouped[method.cuotas] = [];
-            }
-            grouped[method.cuotas].push({ method, price });
+                const price = calculatePrice(netAmount, method);
+
+                // Calculate Effective Commission strictly for display
+                const base = parseFloat(method.comisionBase) || 0;
+                const financ = parseFloat(method.comisionFinanc) || 0;
+                let effectiveCommission = base + financ;
+                if (!method.incluyeIVA) {
+                    effectiveCommission *= 1.21;
+                }
+
+                if (price > 0 && price < overallBestPrice) {
+                    overallBestPrice = price;
+                }
+
+                if (!grouped[method.cuotas]) {
+                    grouped[method.cuotas] = [];
+                }
+                grouped[method.cuotas].push({ method, price, effectiveCommission });
             });
 
-            // Sort each group by price
+            // Sort each group by price and identify category bests
             Object.keys(grouped).forEach(cuota => {
-            grouped[cuota].sort((a, b) => a.price - b.price);
+                grouped[cuota].sort((a, b) => a.price - b.price);
+
+                // Track best price per medioPago (category) within this cuota group
+                const bestInCategory = {};
+                grouped[cuota].forEach(item => {
+                    const category = item.method.medioPago;
+                    if (bestInCategory[category] === undefined) {
+                        bestInCategory[category] = item.price; // Since it's sorted, the first one encountered is the best
+                    }
+
+                    item.isBestOverall = Math.abs(item.price - overallBestPrice) < 0.01;
+                    // It's the best in category if its price matches the lowest recorded for that category AND it's not already the overall best
+                    item.isBestInCategory = !item.isBestOverall && Math.abs(item.price - bestInCategory[category]) < 0.01;
+                });
             });
 
             return grouped;
@@ -231,7 +288,6 @@
             <div className="space-y-8">
                 {Object.keys(resultsByInstallments).sort((a,b) => Number(a) - Number(b)).map(cuota => {
                     const group = resultsByInstallments[cuota];
-                    const bestPrice = group[0].price; // First is lowest because we sorted
 
                     return (
                         <div key={cuota}>
@@ -244,7 +300,9 @@
                                         key={item.method.id}
                                         method={item.method}
                                         price={item.price}
-                                        isBest={Math.abs(item.price - bestPrice) < 0.01}
+                                        effectiveCommission={item.effectiveCommission}
+                                        isBestOverall={item.isBestOverall}
+                                        isBestInCategory={item.isBestInCategory}
                                     />
                                 ))}
                             </div>
