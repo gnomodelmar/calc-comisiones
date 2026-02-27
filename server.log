@@ -16,16 +16,4 @@ Traceback (most recent call last):
   File "/home/jules/.pyenv/versions/3.12.12/lib/python3.12/socketserver.py", line 478, in server_bind
     self.socket.bind(self.server_address)
 OSError: [Errno 98] Address already in use
-127.0.0.1 - - [27/Feb/2026 18:51:52] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:51:53] "GET /main.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:53:41] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:53:41] "GET /main.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:55:32] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:56:17] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:56:18] "GET /main.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:57:16] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:57:17] "GET /main.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:58:31] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:58:32] "GET /main.js HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:59:05] "GET / HTTP/1.1" 200 -
-127.0.0.1 - - [27/Feb/2026 18:59:06] "GET /main.js HTTP/1.1" 200 -
+127.0.0.1 - - [27/Feb/2026 19:32:29] "GET / HTTP/1.1" 200 -
