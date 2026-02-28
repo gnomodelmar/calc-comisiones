@@ -272,7 +272,10 @@
         effectiveCommission,
         isBestOverall,
         isBestInCategory,
+        alternatives = [],
       }) => {
+        const [showAlternatives, setShowAlternatives] = useState(false);
+
         // Determine border and background based on highlight type
         let cardClass =
           "relative p-5 rounded-lg border transition-shadow hover:shadow-md bg-white flex flex-col h-full";
@@ -372,6 +375,67 @@
                 {method.instrucciones}
               </div>
             )}
+
+            {alternatives.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-gray-100 flex flex-col items-center">
+                <button
+                  onClick={() => setShowAlternatives(!showAlternatives)}
+                  className="text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors flex items-center gap-1 w-full justify-center py-1"
+                >
+                  {showAlternatives ? (
+                    <>
+                      Ocultar opciones <LucideIcon name="ChevronUp" size={16} />
+                    </>
+                  ) : (
+                    <>
+                      Ver {alternatives.length} {alternatives.length === 1 ? 'opción' : 'opciones'} más <LucideIcon name="ChevronDown" size={16} />
+                    </>
+                  )}
+                </button>
+
+                {showAlternatives && (
+                  <div className="w-full mt-3 space-y-3">
+                    {alternatives.map((alt) => (
+                      <div key={alt.method.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200 text-sm">
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="font-bold text-gray-800">{alt.method.medioCobro}</span>
+                          <span className="font-bold text-gray-900">{formatCurrency(alt.price)}</span>
+                        </div>
+                        <div className="text-gray-500 text-xs mb-2">
+                          {alt.method.banco !== "Todos" ? alt.method.banco : "Todos los bancos"}
+                        </div>
+
+                        {alt.method.porcentaje_descuento_cliente > 0 && (
+                          <div className="mb-2 p-1.5 bg-blue-50/50 border border-blue-100 rounded text-xs text-blue-800 flex items-start gap-1">
+                            <LucideIcon name="Tag" size={12} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                            <span>
+                              <span className="font-bold">{alt.method.porcentaje_descuento_cliente}% OFF</span>
+                              {alt.method.tope_reintegro > 0 && ` (Tope: $${alt.method.tope_reintegro})`}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <LucideIcon name="Calendar" size={12} className="text-gray-400" />
+                            {alt.method.diasAcreditacion} días
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <LucideIcon name="Percent" size={12} className="text-gray-400" />
+                            {alt.effectiveCommission.toFixed(2)}%
+                          </div>
+                        </div>
+                        {alt.method.instrucciones && (
+                          <div className="mt-2 text-xs text-gray-500 italic">
+                            {alt.method.instrucciones}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
       };
@@ -469,7 +533,7 @@
             return true;
           });
 
-          const grouped = {};
+          const groupedByCuota = {};
           let overallBestPrice = Infinity;
 
           filteredMethods.forEach((method) => {
@@ -487,34 +551,56 @@
               overallBestPrice = price;
             }
 
-            if (!grouped[method.cuotas]) {
-              grouped[method.cuotas] = [];
+            if (!groupedByCuota[method.cuotas]) {
+              groupedByCuota[method.cuotas] = [];
             }
-            grouped[method.cuotas].push({ method, price, effectiveCommission });
+            groupedByCuota[method.cuotas].push({ method, price, effectiveCommission });
           });
 
-          // Sort each group by price and identify category bests
-          Object.keys(grouped).forEach((cuota) => {
-            grouped[cuota].sort((a, b) => a.price - b.price);
+          // Restructure groups to have one "best" per medioPago and the rest as alternatives
+          const finalGrouped = {};
 
-            // Track best price per medioPago (category) within this cuota group
-            const bestInCategory = {};
-            grouped[cuota].forEach((item) => {
+          Object.keys(groupedByCuota).forEach((cuota) => {
+            const itemsInCuota = groupedByCuota[cuota];
+            // Group by medioPago within the cuota
+            const byMedioPago = {};
+            itemsInCuota.forEach((item) => {
               const category = item.method.medioPago;
-              if (bestInCategory[category] === undefined) {
-                bestInCategory[category] = item.price; // Since it's sorted, the first one encountered is the best
-              }
-
-              item.isBestOverall =
-                Math.abs(item.price - overallBestPrice) < 0.01;
-              // It's the best in category if its price matches the lowest recorded for that category AND it's not already the overall best
-              item.isBestInCategory =
-                !item.isBestOverall &&
-                Math.abs(item.price - bestInCategory[category]) < 0.01;
+              if (!byMedioPago[category]) byMedioPago[category] = [];
+              byMedioPago[category].push(item);
             });
+
+            // For each medioPago, sort by price. First is best, rest are alternatives.
+            const categoriesForCuota = [];
+            Object.keys(byMedioPago).forEach((category) => {
+              const items = byMedioPago[category];
+              items.sort((a, b) => a.price - b.price);
+
+              const bestOption = items[0];
+              const alternatives = items.slice(1);
+
+              categoriesForCuota.push({
+                category,
+                bestOption,
+                alternatives
+              });
+            });
+
+            // Sort categories by the best option's price so the cheapest overall appears first
+            categoriesForCuota.sort((a, b) => a.bestOption.price - b.bestOption.price);
+
+            // Mark badges on the bestOption of each category
+            categoriesForCuota.forEach((catGroup, idx) => {
+              const item = catGroup.bestOption;
+              item.isBestOverall = Math.abs(item.price - overallBestPrice) < 0.01;
+              // Every top-level card is the best in its category, so we mark it if it's not the absolute best
+              item.isBestInCategory = !item.isBestOverall;
+            });
+
+            finalGrouped[cuota] = categoriesForCuota;
           });
 
-          return grouped;
+          return finalGrouped;
         }, [montoNeto, methods, selectedBank, selectedCuota, isFlexible]);
 
         return (
@@ -637,7 +723,7 @@
               {Object.keys(resultsByInstallments)
                 .sort((a, b) => Number(a) - Number(b))
                 .map((cuota) => {
-                  const group = resultsByInstallments[cuota];
+                  const catGroups = resultsByInstallments[cuota];
 
                   return (
                     <div key={cuota}>
@@ -645,16 +731,20 @@
                         En {cuota} cuota(s)
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {group.map((item, idx) => (
-                          <ResultCard
-                            key={item.method.id}
-                            method={item.method}
-                            price={item.price}
-                            effectiveCommission={item.effectiveCommission}
-                            isBestOverall={item.isBestOverall}
-                            isBestInCategory={item.isBestInCategory}
-                          />
-                        ))}
+                        {catGroups.map((catGroup, idx) => {
+                          const item = catGroup.bestOption;
+                          return (
+                            <ResultCard
+                              key={item.method.id}
+                              method={item.method}
+                              price={item.price}
+                              effectiveCommission={item.effectiveCommission}
+                              isBestOverall={item.isBestOverall}
+                              isBestInCategory={item.isBestInCategory}
+                              alternatives={catGroup.alternatives}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   );
