@@ -1470,6 +1470,7 @@
         const [showActive, setShowActive] = useState(true);
         const [showUpcoming, setShowUpcoming] = useState(true);
         const [expandedPromoId, setExpandedPromoId] = useState(null);
+        const [viewMode, setViewMode] = useState("list"); // "list" | "calendar"
 
         const getPromoStatus = (promo) => {
           const todayStr = new Date().toISOString().split("T")[0];
@@ -1496,9 +1497,9 @@
             if (searchTerm) {
               const term = searchTerm.toLowerCase();
               return (
-                m.banco.toLowerCase().includes(term) ||
-                m.medioCobro.toLowerCase().includes(term) ||
-                m.medioPago.toLowerCase().includes(term)
+                (m.banco || "").toLowerCase().includes(term) ||
+                (m.medioCobro || "").toLowerCase().includes(term) ||
+                (m.medioPago || "").toLowerCase().includes(term)
               );
             }
 
@@ -1533,6 +1534,55 @@
           "Sáb",
         ];
 
+        // --- Calendar Logic ---
+        const [currentMonth, setCurrentMonth] = useState(() => {
+          const now = new Date();
+          return new Date(now.getFullYear(), now.getMonth(), 1);
+        });
+
+        const calendarDays = useMemo(() => {
+          const year = currentMonth.getFullYear();
+          const month = currentMonth.getMonth();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+          const firstDayIndex = new Date(year, month, 1).getDay(); // 0 is Sunday
+
+          const days = [];
+          for (let i = 0; i < firstDayIndex; i++) {
+            days.push(null); // empty slots for previous month
+          }
+
+          for (let i = 1; i <= daysInMonth; i++) {
+            // pad with zero for YYYY-MM-DD
+            const m = String(month + 1).padStart(2, '0');
+            const d = String(i).padStart(2, '0');
+            const dateStr = `${year}-${m}-${d}`;
+
+            // Find promos that overlap with this date and are valid on this weekday
+            const dateObj = new Date(year, month, i);
+            const dayOfWeek = dateObj.getDay();
+
+            const activePromos = methods.filter(promo => {
+              if (!promo.esPromocion) return false;
+
+              const startDateValid = !promo.fecha_inicio || promo.fecha_inicio <= dateStr;
+              const endDateValid = !promo.fecha_fin || promo.fecha_fin >= dateStr;
+              const dayOfWeekValid = promo.dias_semana.includes(dayOfWeek);
+
+              return startDateValid && endDateValid && dayOfWeekValid;
+            });
+
+            days.push({ day: i, dateStr, activePromos });
+          }
+          return days;
+        }, [currentMonth, methods]);
+
+        const nextMonth = () => {
+          setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+        };
+        const prevMonth = () => {
+          setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+        };
+
         return (
           <div className="max-w-4xl mx-auto p-4">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
@@ -1545,51 +1595,68 @@
                     Buscador de Promociones
                   </h2>
                 </div>
+
+                <div className="flex bg-gray-100 p-1 rounded-lg">
+                  <button
+                    onClick={() => setViewMode("list")}
+                    className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === "list" ? "bg-white shadow text-purple-600" : "text-gray-500 hover:text-gray-700"}`}
+                  >
+                    <LucideIcon name="List" size={16} /> Lista
+                  </button>
+                  <button
+                    onClick={() => setViewMode("calendar")}
+                    className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all ${viewMode === "calendar" ? "bg-white shadow text-purple-600" : "text-gray-500 hover:text-gray-700"}`}
+                  >
+                    <LucideIcon name="Calendar" size={16} /> Calendario
+                  </button>
+                </div>
               </div>
               <p className="text-gray-600 mb-6">
                 Revisá rápidamente las promociones bancarias vigentes o próximas para ofrecer a los clientes.
               </p>
 
-              <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-grow">
-                    <div className="relative">
-                      <span className="absolute left-3 top-3 text-gray-400">
-                        <LucideIcon name="Search" size={18} />
-                      </span>
-                      <input
-                        type="text"
-                        placeholder="Buscar por banco, billetera o medio de pago..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all outline-none"
-                      />
+              {viewMode === "list" && (
+                <>
+                  <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="flex-grow">
+                        <div className="relative">
+                          <span className="absolute left-3 top-3 text-gray-400">
+                            <LucideIcon name="Search" size={18} />
+                          </span>
+                          <input
+                            type="text"
+                            placeholder="Buscar por banco, billetera o medio de pago..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-lg border border-gray-300">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={showActive}
+                            onChange={(e) => setShowActive(e.target.checked)}
+                            className="w-4 h-4 text-purple-600 rounded border-purple-300 focus:ring-purple-500"
+                          />
+                          <span className="text-sm font-medium text-gray-700">Activas</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={showUpcoming}
+                            onChange={(e) => setShowUpcoming(e.target.checked)}
+                            className="w-4 h-4 text-purple-600 rounded border-purple-300 focus:ring-purple-500"
+                          />
+                          <span className="text-sm font-medium text-gray-700">Próximas</span>
+                        </label>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-lg border border-gray-300">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={showActive}
-                        onChange={(e) => setShowActive(e.target.checked)}
-                        className="w-4 h-4 text-purple-600 rounded border-purple-300 focus:ring-purple-500"
-                      />
-                      <span className="text-sm font-medium text-gray-700">Activas</span>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={showUpcoming}
-                        onChange={(e) => setShowUpcoming(e.target.checked)}
-                        className="w-4 h-4 text-purple-600 rounded border-purple-300 focus:ring-purple-500"
-                      />
-                      <span className="text-sm font-medium text-gray-700">Próximas</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
 
-              {Object.keys(promotionsByBank).length === 0 ? (
+                  {Object.keys(promotionsByBank).length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
                   <LucideIcon
                     name="Tag"
@@ -1647,10 +1714,16 @@
 
                                   <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mt-2">
                                     {promo.porcentaje_descuento_cliente > 0 && (
-                                      <div className="flex items-center gap-1.5 text-sm text-green-700 font-medium bg-green-50 px-2 py-1 rounded border border-green-100">
-                                        <LucideIcon name="BadgePercent" size={16} />
-                                        {promo.porcentaje_descuento_cliente}% de reintegro
-                                        {promo.tope_reintegro > 0 && ` (Tope: $${promo.tope_reintegro})`}
+                                      <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 text-sm text-green-700 font-medium bg-green-50 px-2 py-1 rounded border border-green-100">
+                                        <div className="flex items-center gap-1.5">
+                                          <LucideIcon name="BadgePercent" size={16} />
+                                          {promo.porcentaje_descuento_cliente}% de reintegro
+                                        </div>
+                                        {promo.tope_reintegro > 0 && (
+                                          <span className="text-xs ml-0 sm:ml-1 opacity-90 border-t sm:border-t-0 sm:border-l border-green-200 pt-1 sm:pt-0 sm:pl-2 mt-1 sm:mt-0">
+                                            (Tope: ${promo.tope_reintegro} {promo.tipo_tope === 'por_mes' ? 'por mes' : 'por transacción'})
+                                          </span>
+                                        )}
                                       </div>
                                     )}
                                     <div className="flex items-center gap-1.5 text-sm text-blue-700 font-medium">
@@ -1711,6 +1784,67 @@
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+              </>
+              )}
+
+              {viewMode === "calendar" && (
+                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                  {/* Calendar Header */}
+                  <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
+                    <button onClick={prevMonth} className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors">
+                      <LucideIcon name="ChevronLeft" size={20} />
+                    </button>
+                    <h3 className="text-lg font-bold text-gray-800 capitalize">
+                      {currentMonth.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
+                    </h3>
+                    <button onClick={nextMonth} className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors">
+                      <LucideIcon name="ChevronRight" size={20} />
+                    </button>
+                  </div>
+
+                  {/* Calendar Grid */}
+                  <div className="grid grid-cols-7 text-center text-xs sm:text-sm font-semibold text-gray-500 bg-gray-50 border-b border-gray-200">
+                    {diasSemanaNombres.map(dia => (
+                      <div key={dia} className="py-2">{dia}</div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-px bg-gray-200">
+                    {calendarDays.map((dayData, idx) => (
+                      <div key={idx} className={`min-h-[80px] sm:min-h-[120px] bg-white p-1 sm:p-2 flex flex-col ${!dayData ? 'opacity-50 bg-gray-50' : ''}`}>
+                        {dayData && (
+                          <>
+                            <div className="text-right text-xs sm:text-sm font-medium text-gray-500 mb-1">{dayData.day}</div>
+                            <div className="flex-grow flex flex-col gap-1 overflow-y-auto">
+                              {dayData.activePromos.map(promo => {
+                                const isStart = promo.fecha_inicio === dayData.dateStr;
+                                const isEnd = promo.fecha_fin === dayData.dateStr;
+                                return (
+                                  <div key={`${promo.id}-${idx}`}
+                                    className={`text-[9px] sm:text-[10px] leading-tight p-1 rounded font-medium flex items-center justify-between
+                                      ${isStart ? 'bg-green-100 text-green-800 border-l-2 border-green-500' :
+                                        isEnd ? 'bg-red-100 text-red-800 border-l-2 border-red-500' :
+                                        'bg-purple-50 text-purple-700'}`}
+                                    title={`${promo.banco} - ${promo.porcentaje_descuento_cliente}% OFF`}
+                                  >
+                                    <span className="truncate">{promo.banco}</span>
+                                    {isStart && <LucideIcon name="Play" size={10} className="flex-shrink-0" />}
+                                    {isEnd && <LucideIcon name="Square" size={10} className="flex-shrink-0" />}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-4 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex gap-4 justify-center">
+                    <div className="flex items-center gap-1"><span className="w-3 h-3 bg-green-100 border-l-2 border-green-500 rounded-sm inline-block"></span> Inicio Promo</div>
+                    <div className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-50 rounded-sm inline-block"></span> Promo Activa</div>
+                    <div className="flex items-center gap-1"><span className="w-3 h-3 bg-red-100 border-l-2 border-red-500 rounded-sm inline-block"></span> Fin Promo</div>
+                  </div>
                 </div>
               )}
             </div>
@@ -1805,6 +1939,17 @@
           }).sort((a, b) => a.fecha_fin.localeCompare(b.fecha_fin));
         }, [methods, todayStr, nextWeekStr]);
 
+        const promosVencidas = useMemo(() => {
+          const lastWeek = new Date();
+          lastWeek.setDate(lastWeek.getDate() - 7);
+          const lastWeekStr = lastWeek.toISOString().split("T")[0];
+
+          return methods.filter(m => {
+            if (!m.esPromocion || !m.fecha_fin) return false;
+            return m.fecha_fin < todayStr && m.fecha_fin >= lastWeekStr;
+          }).sort((a, b) => b.fecha_fin.localeCompare(a.fecha_fin)); // Sort descending for expired
+        }, [methods, todayStr]);
+
         const formatShortDate = (dateStr) => {
           if (!dateStr) return "";
           const d = new Date(dateStr);
@@ -1881,6 +2026,36 @@
                           <div className="text-right">
                             <span className="inline-block px-2 py-1 bg-red-200 text-red-800 text-xs font-bold rounded">
                               Vence: {formatShortDate(promo.fecha_fin)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Promos Vencidas */}
+                <div className="md:col-span-2 mt-4">
+                  <h3 className="text-lg font-bold text-gray-500 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+                    <LucideIcon name="Archive" size={20} className="text-gray-400" />
+                    Promociones vencidas (últimos 7 días)
+                  </h3>
+
+                  {promosVencidas.length === 0 ? (
+                    <div className="p-6 bg-white rounded-lg border border-gray-100 text-center text-gray-400 text-sm">
+                      No hay promociones vencidas recientemente.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {promosVencidas.map(promo => (
+                        <div key={promo.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-start opacity-75">
+                          <div>
+                            <div className="font-bold text-gray-700 line-through">{promo.medioCobro} <span className="text-sm font-normal text-gray-500">({promo.banco})</span></div>
+                            <div className="text-sm text-gray-500 mt-1">{promo.porcentaje_descuento_cliente}% OFF - {promo.cuotas} cuotas</div>
+                          </div>
+                          <div className="text-right">
+                            <span className="inline-block px-2 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded">
+                              Venció: {formatShortDate(promo.fecha_fin)}
                             </span>
                           </div>
                         </div>
