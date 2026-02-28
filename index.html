@@ -1884,6 +1884,10 @@
                                       });
                                     }}
                                     onMouseLeave={() => setTooltipData(null)}
+                                    onClick={() => {
+                                      setViewMode("list");
+                                      setExpandedPromoId(promo.id);
+                                    }}
                                   >
                                     <span className="truncate">{promo.banco}</span>
                                     {isStart && <LucideIcon name="Play" size={10} className="flex-shrink-0" />}
@@ -1914,10 +1918,10 @@
                       </div>
                       <div className="text-green-700 font-bold mb-2">
                         {tooltipData.promo.porcentaje_descuento_cliente}% OFF
-                        {tooltipData.promo.tope_reintegro > 0 && <span className="text-xs text-gray-500 font-normal ml-1">(Tope: ${tooltipData.promo.tope_reintegro})</span>}
+                        {tooltipData.promo.tope_reintegro > 0 && <span className="text-xs text-gray-500 font-normal ml-1 block mt-1">(Tope: ${tooltipData.promo.tope_reintegro} {tooltipData.promo.tipo_tope === "por_transaccion" ? "x Transacción" : "x Mes"})</span>}
                       </div>
                       <div className="text-xs text-gray-600 mb-1 flex items-center gap-1">
-                        <LucideIcon name="CreditCard" size={12} /> {tooltipData.promo.cuotas} cuota(s)
+                        <LucideIcon name="CreditCard" size={12} /> {tooltipData.promo.medioPago} ({tooltipData.promo.cuotas} cuota/s)
                       </div>
                       <div className="text-xs text-gray-600 flex items-center gap-1">
                         <LucideIcon name="Calendar" size={12} /> {tooltipData.promo.diasAcreditacion} días acred.
@@ -2017,6 +2021,15 @@
           if (confirm("¿Estás seguro de eliminar PERMANENTEMENTE este medio de cobro? Esta acción no se puede deshacer.")) {
             setMethods(methods.filter(m => m.id !== id));
           }
+        };
+
+        const handleDownloadImage = (imgSrc, methodId, index) => {
+          const link = document.createElement("a");
+          link.href = imgSrc;
+          link.download = `flyer_promo_${methodId}_${index}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         };
 
         return (
@@ -2310,7 +2323,23 @@
                           <div className="text-sm font-medium text-gray-600 flex items-center gap-3">
                             <span className="flex items-center gap-1"><LucideIcon name="Landmark" size={14} /> {method.banco}</span>
                             <span className="flex items-center gap-1"><LucideIcon name="CreditCard" size={14} /> {method.cuotas} cuotas</span>
+                            {method.esPromocion && method.porcentaje_descuento_cliente > 0 && (
+                              <span className="text-green-600 font-semibold flex items-center gap-1">
+                                <LucideIcon name="Tag" size={14} /> {method.porcentaje_descuento_cliente}% OFF
+                              </span>
+                            )}
                           </div>
+                          {method.esPromocion && (method.fecha_inicio || method.fecha_fin) && (
+                            <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                              <LucideIcon name="Calendar" size={12} />
+                              {method.fecha_inicio ? new Date(method.fecha_inicio).toLocaleDateString() : 'Siempre'} - {method.fecha_fin ? new Date(method.fecha_fin).toLocaleDateString() : 'Sin fin'}
+                              {method.tope_reintegro > 0 && (
+                                <span className="ml-2 border-l border-gray-300 pl-2">
+                                  Tope: ${method.tope_reintegro} ({method.tipo_tope === "por_transaccion" ? "x Transacción" : "x Mes"})
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-4">
                            {method.marketingNotes && <span className="text-xs font-semibold text-pink-600 bg-pink-100 px-2 py-1 rounded flex items-center gap-1"><LucideIcon name="FileText" size={12}/> Hay notas</span>}
@@ -2321,6 +2350,24 @@
 
                       {isExpanded && (
                         <div className="p-4 bg-gray-50 border-t border-gray-200 animate-fadeIn">
+                          {method.esPromocion && (
+                            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-3 rounded border border-gray-200 shadow-sm text-sm text-gray-700">
+                                <div>
+                                   <strong className="block text-gray-900 mb-1">Días de vigencia:</strong>
+                                   {(method.dias_semana || []).length === 7 ? "Todos los días" : (method.dias_semana || []).map(d => ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"][d]).join(", ")}
+                                </div>
+                                <div>
+                                   <strong className="block text-gray-900 mb-1">Comisiones:</strong>
+                                   Base: {method.comisionBase}% | Financiera: {method.comisionFinanc}%
+                                </div>
+                                {method.instrucciones && (
+                                  <div className="md:col-span-2">
+                                     <strong className="block text-gray-900 mb-1">Instrucciones:</strong>
+                                     <p className="text-gray-600 bg-gray-50 p-2 rounded">{method.instrucciones}</p>
+                                  </div>
+                                )}
+                            </div>
+                          )}
                           <div className="mb-4">
                             <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                               <LucideIcon name="PenTool" size={16} className="text-pink-500"/>
@@ -2345,12 +2392,22 @@
                               {(method.marketingImages || []).map((imgSrc, idx) => (
                                 <div key={idx} className="relative group w-32 h-32 border border-gray-200 rounded bg-white shadow-sm flex items-center justify-center overflow-hidden">
                                   <img src={imgSrc} alt="Flyer" className="max-w-full max-h-full object-contain" />
-                                  <button
-                                    onClick={() => handleDeleteImage(method.id, idx)}
-                                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                                  >
-                                    <LucideIcon name="Trash2" size={12} />
-                                  </button>
+                                  <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                      onClick={() => handleDownloadImage(imgSrc, method.id, idx)}
+                                      className="bg-blue-500 text-white p-1 rounded-full shadow-sm hover:bg-blue-600"
+                                      title="Descargar"
+                                    >
+                                      <LucideIcon name="Download" size={12} />
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteImage(method.id, idx)}
+                                      className="bg-red-500 text-white p-1 rounded-full shadow-sm hover:bg-red-600"
+                                      title="Eliminar"
+                                    >
+                                      <LucideIcon name="Trash2" size={12} />
+                                    </button>
+                                  </div>
                                 </div>
                               ))}
 
