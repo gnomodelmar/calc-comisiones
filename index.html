@@ -263,6 +263,17 @@
               <span>Novedades</span>
             </button>
             <button
+              onClick={() => onViewChange("marketing")}
+              className={`flex items-center space-x-2 pb-2 px-2 text-base sm:text-lg font-medium transition-colors ${
+                currentView === "marketing"
+                  ? "border-b-2 border-pink-500 text-pink-500"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <LucideIcon name="Megaphone" size={20} />
+              <span>Marketing</span>
+            </button>
+            <button
               onClick={() => onViewChange("config")}
               className={`flex items-center space-x-2 pb-2 px-2 text-base sm:text-lg font-medium transition-colors ${
                 currentView === "config"
@@ -832,8 +843,9 @@
         );
       };
 
-      const ConfigView = ({ methods, onAdd, onEdit, onDelete }) => {
+      const ConfigView = ({ methods, deletedMethods, onAdd, onEdit, onDelete, onRestore, onHardDelete }) => {
         const [editingId, setEditingId] = useState(null);
+        const [showTrash, setShowTrash] = useState(false);
         const [formData, setFormData] = useState({
           medioCobro: "",
           medioPago: "",
@@ -1004,7 +1016,7 @@
         };
 
         const handleDuplicateClick = (method) => {
-          setFormData({ ...method, id: undefined });
+          setFormData({ ...method, id: undefined, marketingNotes: "", marketingImages: [] });
           setEditingId(null);
           window.scrollTo({ top: 0, behavior: "smooth" });
         };
@@ -1327,9 +1339,20 @@
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <h3 className="text-lg font-bold text-gray-800 p-6 border-b">
-                Medios Guardados
-              </h3>
+              <div className="flex justify-between items-center p-6 border-b">
+                <h3 className="text-lg font-bold text-gray-800">
+                  {showTrash ? "Papelera (Últimos 7 días)" : "Medios Guardados"}
+                </h3>
+                <button
+                  onClick={() => setShowTrash(!showTrash)}
+                  className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+                    showTrash ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <LucideIcon name="Trash2" size={16} />
+                  {showTrash ? "Ver Activos" : `Ver Papelera (${deletedMethods.length})`}
+                </button>
+              </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left text-gray-500">
                   <thead className="text-xs text-gray-700 uppercase bg-gray-50">
@@ -1345,7 +1368,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    {methods.map((method) => {
+                    {(showTrash ? deletedMethods : methods).map((method) => {
                       const status = getVigencyStatus(method);
                       return (
                         <tr
@@ -1353,11 +1376,17 @@
                           className="bg-white border-b hover:bg-gray-50"
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${status.color}`}
-                            >
-                              {status.label}
-                            </span>
+                            {showTrash ? (
+                               <span className="px-2.5 py-1 text-xs font-semibold rounded-full border bg-gray-100 text-gray-600 border-gray-300">
+                                 Eliminado
+                               </span>
+                            ) : (
+                               <span
+                                 className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${status.color}`}
+                               >
+                                 {status.label}
+                               </span>
+                            )}
                           </td>
                           <td className="px-6 py-4 font-medium text-gray-900">
                             {method.medioCobro} <br />
@@ -1420,40 +1449,59 @@
                               : "-"}
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <div className="flex justify-end space-x-1">
-                              <button
-                                onClick={() => handleDuplicateClick(method)}
-                                title="Duplicar"
-                                className="p-2 text-gray-500 hover:text-green-600 rounded-full hover:bg-green-50 transition-colors"
-                              >
-                                <LucideIcon name="Copy" size={16} />
-                              </button>
-                              <button
-                                onClick={() => handleEditClick(method)}
-                                title="Editar"
-                                className="p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors"
-                              >
-                                <LucideIcon name="Edit" size={16} />
-                              </button>
-                              <button
-                                onClick={() => onDelete(method.id)}
-                                title="Eliminar"
-                                className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors"
-                              >
-                                <LucideIcon name="Trash2" size={16} />
-                              </button>
-                            </div>
+                            {showTrash ? (
+                              <div className="flex justify-end space-x-1">
+                                <button
+                                  onClick={() => onRestore(method.id)}
+                                  title="Restaurar"
+                                  className="p-2 text-green-600 hover:text-green-800 rounded-full hover:bg-green-50 transition-colors"
+                                >
+                                  <LucideIcon name="RefreshCcw" size={16} />
+                                </button>
+                                <button
+                                  onClick={() => onHardDelete(method.id)}
+                                  title="Eliminar permanentemente"
+                                  className="p-2 text-red-600 hover:text-red-800 rounded-full hover:bg-red-50 transition-colors"
+                                >
+                                  <LucideIcon name="Trash2" size={16} />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex justify-end space-x-1">
+                                <button
+                                  onClick={() => handleDuplicateClick(method)}
+                                  title="Duplicar"
+                                  className="p-2 text-gray-500 hover:text-green-600 rounded-full hover:bg-green-50 transition-colors"
+                                >
+                                  <LucideIcon name="Copy" size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleEditClick(method)}
+                                  title="Editar"
+                                  className="p-2 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors"
+                                >
+                                  <LucideIcon name="Edit" size={16} />
+                                </button>
+                                <button
+                                  onClick={() => onDelete(method.id)}
+                                  title="Eliminar"
+                                  className="p-2 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors"
+                                >
+                                  <LucideIcon name="Trash2" size={16} />
+                                </button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       );
                     })}
-                    {methods.length === 0 && (
+                    {(showTrash ? deletedMethods : methods).length === 0 && (
                       <tr>
                         <td
-                          colSpan="7"
+                          colSpan="8"
                           className="p-8 text-center text-gray-400"
                         >
-                          No hay medios de cobro configurados.
+                          {showTrash ? "La papelera está vacía." : "No hay medios de cobro configurados."}
                         </td>
                       </tr>
                     )}
@@ -1471,6 +1519,7 @@
         const [showUpcoming, setShowUpcoming] = useState(true);
         const [expandedPromoId, setExpandedPromoId] = useState(null);
         const [viewMode, setViewMode] = useState("list"); // "list" | "calendar"
+        const [tooltipData, setTooltipData] = useState(null);
 
         const getPromoStatus = (promo) => {
           const todayStr = new Date().toISOString().split("T")[0];
@@ -1822,11 +1871,19 @@
                                 const isEnd = promo.fecha_fin === dayData.dateStr;
                                 return (
                                   <div key={`${promo.id}-${idx}`}
-                                    className={`text-[9px] sm:text-[10px] leading-tight p-1 rounded font-medium flex items-center justify-between
+                                    className={`text-[9px] sm:text-[10px] leading-tight p-1 rounded font-medium flex items-center justify-between cursor-pointer hover:opacity-80
                                       ${isStart ? 'bg-green-100 text-green-800 border-l-2 border-green-500' :
                                         isEnd ? 'bg-red-100 text-red-800 border-l-2 border-red-500' :
                                         'bg-purple-50 text-purple-700'}`}
-                                    title={`${promo.banco} - ${promo.porcentaje_descuento_cliente}% OFF`}
+                                    onMouseEnter={(e) => {
+                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      setTooltipData({
+                                        promo,
+                                        x: rect.left + window.scrollX + rect.width / 2,
+                                        y: rect.top + window.scrollY - 10
+                                      });
+                                    }}
+                                    onMouseLeave={() => setTooltipData(null)}
                                   >
                                     <span className="truncate">{promo.banco}</span>
                                     {isStart && <LucideIcon name="Play" size={10} className="flex-shrink-0" />}
@@ -1845,6 +1902,29 @@
                     <div className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-50 rounded-sm inline-block"></span> Promo Activa</div>
                     <div className="flex items-center gap-1"><span className="w-3 h-3 bg-red-100 border-l-2 border-red-500 rounded-sm inline-block"></span> Fin Promo</div>
                   </div>
+
+                  {tooltipData && (
+                    <div
+                      className="absolute z-50 bg-white border border-gray-200 shadow-xl rounded-lg p-3 w-64 text-sm pointer-events-none transform -translate-x-1/2 -translate-y-full"
+                      style={{ left: tooltipData.x, top: tooltipData.y }}
+                    >
+                      <div className="font-bold text-gray-900 mb-1 flex items-center justify-between">
+                        <span>{tooltipData.promo.banco}</span>
+                        <span className="text-xs font-normal text-gray-500">{tooltipData.promo.medioCobro}</span>
+                      </div>
+                      <div className="text-green-700 font-bold mb-2">
+                        {tooltipData.promo.porcentaje_descuento_cliente}% OFF
+                        {tooltipData.promo.tope_reintegro > 0 && <span className="text-xs text-gray-500 font-normal ml-1">(Tope: ${tooltipData.promo.tope_reintegro})</span>}
+                      </div>
+                      <div className="text-xs text-gray-600 mb-1 flex items-center gap-1">
+                        <LucideIcon name="CreditCard" size={12} /> {tooltipData.promo.cuotas} cuota(s)
+                      </div>
+                      <div className="text-xs text-gray-600 flex items-center gap-1">
+                        <LucideIcon name="Calendar" size={12} /> {tooltipData.promo.diasAcreditacion} días acred.
+                      </div>
+                      <div className="absolute w-3 h-3 bg-white border-b border-r border-gray-200 transform rotate-45 -bottom-1.5 left-1/2 -ml-1.5"></div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -1873,6 +1953,9 @@
               fecha_ultima_edicion:
                 m.fecha_ultima_edicion || new Date().toISOString(),
               esPromocion: m.esPromocion || false,
+              deletedAt: m.deletedAt || null,
+              marketingNotes: m.marketingNotes || "",
+              marketingImages: m.marketingImages || [],
             }));
           } catch (e) {
             console.error("Error parsing saved methods", e);
@@ -1880,9 +1963,35 @@
           }
         });
 
+        // 7-day auto purge for deleted items
+        useEffect(() => {
+          const now = new Date();
+          const msPerDay = 1000 * 60 * 60 * 24;
+          let changed = false;
+
+          const purgedMethods = methods.filter(m => {
+            if (m.deletedAt) {
+              const deletedDate = new Date(m.deletedAt);
+              const diffDays = Math.floor((now - deletedDate) / msPerDay);
+              if (diffDays >= 7) {
+                changed = true;
+                return false; // Hard delete
+              }
+            }
+            return true;
+          });
+
+          if (changed) {
+            setMethods(purgedMethods);
+          }
+        }, []); // Run once on mount
+
         useEffect(() => {
           localStorage.setItem("paymentMethods", JSON.stringify(methods));
         }, [methods]);
+
+        const activeMethods = useMemo(() => methods.filter(m => !m.deletedAt), [methods]);
+        const deletedMethods = useMemo(() => methods.filter(m => m.deletedAt), [methods]);
 
         const addMethod = (method) => {
           setMethods([...methods, method]);
@@ -1895,8 +2004,18 @@
         };
 
         const deleteMethod = (id) => {
-          if (confirm("¿Estás seguro de eliminar este medio de cobro?")) {
-            setMethods(methods.filter((m) => m.id !== id));
+          if (confirm("¿Estás seguro de enviar este medio de cobro a la papelera por 7 días?")) {
+            setMethods(methods.map(m => m.id === id ? { ...m, deletedAt: new Date().toISOString() } : m));
+          }
+        };
+
+        const restoreMethod = (id) => {
+          setMethods(methods.map(m => m.id === id ? { ...m, deletedAt: null } : m));
+        };
+
+        const hardDeleteMethod = (id) => {
+          if (confirm("¿Estás seguro de eliminar PERMANENTEMENTE este medio de cobro? Esta acción no se puede deshacer.")) {
+            setMethods(methods.filter(m => m.id !== id));
           }
         };
 
@@ -1904,15 +2023,19 @@
           <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-20">
             <Header currentView={view} onViewChange={setView} />
 
-            {view === "calculator" && <CalculatorView methods={methods} />}
-            {view === "promotions" && <PromotionsView methods={methods} />}
-            {view === "notifications" && <NotificationsView methods={methods} />}
+            {view === "calculator" && <CalculatorView methods={activeMethods} />}
+            {view === "promotions" && <PromotionsView methods={activeMethods} />}
+            {view === "notifications" && <NotificationsView methods={activeMethods} />}
+            {view === "marketing" && <MarketingView methods={activeMethods} onEdit={editMethod} />}
             {view === "config" && (
               <ConfigView
-                methods={methods}
+                methods={activeMethods}
+                deletedMethods={deletedMethods}
                 onAdd={addMethod}
                 onEdit={editMethod}
                 onDelete={deleteMethod}
+                onRestore={restoreMethod}
+                onHardDelete={hardDeleteMethod}
               />
             )}
           </div>
@@ -2065,6 +2188,195 @@
                 </div>
               </div>
 
+            </div>
+          </div>
+        );
+      };
+
+      const MarketingView = ({ methods, onEdit }) => {
+        const [searchTerm, setSearchTerm] = useState("");
+        const [onlyPromos, setOnlyPromos] = useState(false);
+        const [expandedCardId, setExpandedCardId] = useState(null);
+
+        const filteredMethods = useMemo(() => {
+          return methods.filter(m => {
+            if (onlyPromos && !m.esPromocion) return false;
+
+            if (searchTerm) {
+              const term = searchTerm.toLowerCase();
+              return (
+                (m.banco || "").toLowerCase().includes(term) ||
+                (m.medioCobro || "").toLowerCase().includes(term) ||
+                (m.medioPago || "").toLowerCase().includes(term)
+              );
+            }
+            return true;
+          });
+        }, [methods, searchTerm, onlyPromos]);
+
+        const handleNotesChange = (id, notes) => {
+          const method = methods.find(m => m.id === id);
+          if (method) {
+             onEdit({ ...method, marketingNotes: notes });
+          }
+        };
+
+        const handleImageUpload = (id, e) => {
+          const method = methods.find(m => m.id === id);
+          if (!method) return;
+
+          const files = e.target.files;
+          if (!files || files.length === 0) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+             const newImages = [...(method.marketingImages || []), event.target.result];
+             onEdit({ ...method, marketingImages: newImages });
+          };
+          reader.readAsDataURL(files[0]);
+        };
+
+        const handleDeleteImage = (methodId, imageIndex) => {
+          const method = methods.find(m => m.id === methodId);
+          if (!method) return;
+
+          if(confirm("¿Eliminar este flyer/imagen?")) {
+            const newImages = [...method.marketingImages];
+            newImages.splice(imageIndex, 1);
+            onEdit({ ...method, marketingImages: newImages });
+          }
+        };
+
+        return (
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-pink-100 text-pink-600 rounded-lg">
+                  <LucideIcon name="Megaphone" size={24} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Panel de Marketing
+                </h2>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Revisá los medios de cobro disponibles, anotá ideas, planificá campañas y guardá flyers asociados a cada promoción. Esta información es privada para el equipo de marketing.
+              </p>
+
+              <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-grow">
+                    <div className="relative">
+                      <span className="absolute left-3 top-3 text-gray-400">
+                        <LucideIcon name="Search" size={18} />
+                      </span>
+                      <input
+                        type="text"
+                        placeholder="Buscar por banco, billetera o medio de pago..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 bg-white px-4 py-2 rounded-lg border border-gray-300">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={onlyPromos}
+                        onChange={(e) => setOnlyPromos(e.target.checked)}
+                        className="w-4 h-4 text-pink-600 rounded border-pink-300 focus:ring-pink-500"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Solo Promociones Destacadas</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {filteredMethods.map(method => {
+                  const isExpanded = expandedCardId === method.id;
+                  return (
+                    <div key={method.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                      <div
+                        className={`p-4 cursor-pointer flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors ${isExpanded ? 'bg-pink-50/30' : 'hover:bg-gray-50'}`}
+                        onClick={() => setExpandedCardId(isExpanded ? null : method.id)}
+                      >
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-bold text-lg text-gray-900">{method.medioCobro}</span>
+                            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">{method.medioPago}</span>
+                            {method.esPromocion && <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">Promo</span>}
+                          </div>
+                          <div className="text-sm font-medium text-gray-600 flex items-center gap-3">
+                            <span className="flex items-center gap-1"><LucideIcon name="Landmark" size={14} /> {method.banco}</span>
+                            <span className="flex items-center gap-1"><LucideIcon name="CreditCard" size={14} /> {method.cuotas} cuotas</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                           {method.marketingNotes && <span className="text-xs font-semibold text-pink-600 bg-pink-100 px-2 py-1 rounded flex items-center gap-1"><LucideIcon name="FileText" size={12}/> Hay notas</span>}
+                           {(method.marketingImages || []).length > 0 && <span className="text-xs font-semibold text-pink-600 bg-pink-100 px-2 py-1 rounded flex items-center gap-1"><LucideIcon name="Image" size={12}/> {(method.marketingImages || []).length} Flyer(s)</span>}
+                           <LucideIcon name={isExpanded ? "ChevronUp" : "ChevronDown"} size={20} className="text-gray-400" />
+                        </div>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="p-4 bg-gray-50 border-t border-gray-200 animate-fadeIn">
+                          <div className="mb-4">
+                            <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                              <LucideIcon name="PenTool" size={16} className="text-pink-500"/>
+                              Notas de Campaña / Planificación
+                            </label>
+                            <textarea
+                              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 outline-none text-sm min-h-[100px]"
+                              placeholder="Ej: Se publicitó en Instagram el 12/03. Renovar pauta si funciona bien..."
+                              value={method.marketingNotes || ""}
+                              onChange={(e) => handleNotesChange(method.id, e.target.value)}
+                            />
+                            <p className="text-xs text-gray-400 mt-1">Se guarda automáticamente.</p>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                              <LucideIcon name="ImagePlus" size={16} className="text-pink-500"/>
+                              Flyers y Material Gráfico
+                            </label>
+
+                            <div className="flex flex-wrap gap-4 mb-3">
+                              {(method.marketingImages || []).map((imgSrc, idx) => (
+                                <div key={idx} className="relative group w-32 h-32 border border-gray-200 rounded bg-white shadow-sm flex items-center justify-center overflow-hidden">
+                                  <img src={imgSrc} alt="Flyer" className="max-w-full max-h-full object-contain" />
+                                  <button
+                                    onClick={() => handleDeleteImage(method.id, idx)}
+                                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                                  >
+                                    <LucideIcon name="Trash2" size={12} />
+                                  </button>
+                                </div>
+                              ))}
+
+                              <label className="w-32 h-32 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center text-gray-400 hover:text-pink-500 hover:border-pink-500 hover:bg-pink-50 transition-colors cursor-pointer">
+                                <LucideIcon name="UploadCloud" size={24} className="mb-1" />
+                                <span className="text-xs font-medium">Subir imagen</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleImageUpload(method.id, e)}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {filteredMethods.length === 0 && (
+                   <div className="text-center py-10 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                      No se encontraron métodos de pago para marketing.
+                   </div>
+                )}
+              </div>
             </div>
           </div>
         );
