@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -274,6 +274,17 @@
               <span>Marketing</span>
             </button>
             <button
+              onClick={() => onViewChange("manual")}
+              className={`flex items-center space-x-2 pb-2 px-2 text-base sm:text-lg font-medium transition-colors ${
+                currentView === "manual"
+                  ? "border-b-2 border-indigo-600 text-indigo-600"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <LucideIcon name="BookOpen" size={20} />
+              <span>Manual</span>
+            </button>
+            <button
               onClick={() => onViewChange("config")}
               className={`flex items-center space-x-2 pb-2 px-2 text-base sm:text-lg font-medium transition-colors ${
                 currentView === "config"
@@ -309,7 +320,9 @@
           cardClass += " border-green-500 bg-green-50/50";
           badgeClass = "bg-green-100 text-green-700 border-green-300";
           badgeText = "Opción más barata";
-          badgeIcon = <LucideIcon name="DollarSign" size={12} className="mr-1" />;
+          badgeIcon = (
+            <LucideIcon name="DollarSign" size={12} className="mr-1" />
+          );
         } else if (method.esPromocion) {
           cardClass += " border-blue-400 bg-blue-50/30";
           badgeClass = "bg-blue-100 text-blue-700 border-blue-200";
@@ -319,12 +332,22 @@
           cardClass += " border-orange-300 bg-orange-50/30";
           badgeClass = "bg-orange-100 text-orange-700 border-orange-200";
           badgeText = "Cuotas";
-          badgeIcon = <LucideIcon name="CreditCard" size={12} className="mr-1" />;
+          badgeIcon = (
+            <LucideIcon name="CreditCard" size={12} className="mr-1" />
+          );
         } else {
           cardClass += " border-gray-200";
         }
 
-        const diasSemanaNombres = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+        const diasSemanaNombres = [
+          "Dom",
+          "Lun",
+          "Mar",
+          "Mié",
+          "Jue",
+          "Vie",
+          "Sáb",
+        ];
 
         return (
           <div className={cardClass}>
@@ -347,13 +370,18 @@
             </div>
 
             <div className="mt-2 mb-3 bg-gray-50 p-3 rounded-md border border-gray-100">
-              <div className="text-xs text-gray-500 mb-0.5">Monto final a cobrar</div>
+              <div className="text-xs text-gray-500 mb-0.5">
+                Monto final a cobrar
+              </div>
               <div className="text-3xl font-bold text-gray-900">
                 {price > 0 ? formatCurrency(price) : "$0.00"}
               </div>
               <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                 <LucideIcon name="Percent" size={12} />
-                Comisión aplicada: <span className="font-semibold text-gray-700">{effectiveCommission.toFixed(2)}%</span>
+                Comisión aplicada:{" "}
+                <span className="font-semibold text-gray-700">
+                  {effectiveCommission.toFixed(2)}%
+                </span>
               </div>
             </div>
 
@@ -367,7 +395,9 @@
                   />
                   <div>
                     <span className="font-bold">
-                      {method.porcentaje_descuento_cliente > 0 ? `${method.porcentaje_descuento_cliente}% OFF` : 'Promoción especial'}
+                      {method.porcentaje_descuento_cliente > 0
+                        ? `${method.porcentaje_descuento_cliente}% OFF`
+                        : "Promoción especial"}
                     </span>
                     {method.tope_reintegro > 0 && (
                       <span className="text-blue-700 ml-1">
@@ -377,11 +407,17 @@
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-blue-700 ml-6">
-                   <LucideIcon name="CalendarDays" size={12} className="opacity-70" />
-                   {method.dias_semana.length < 7
-                     ? `Días: ${method.dias_semana.map(d => diasSemanaNombres[d]).join(', ')}`
-                     : 'Todos los días'}
-                   {method.banco !== "Todos" && <span className="ml-2 font-semibold">· {method.banco}</span>}
+                  <LucideIcon
+                    name="CalendarDays"
+                    size={12}
+                    className="opacity-70"
+                  />
+                  {method.dias_semana.length < 7
+                    ? `Días: ${method.dias_semana.map((d) => diasSemanaNombres[d]).join(", ")}`
+                    : "Todos los días"}
+                  {method.banco !== "Todos" && (
+                    <span className="ml-2 font-semibold">· {method.banco}</span>
+                  )}
                 </div>
               </div>
             )}
@@ -394,7 +430,10 @@
                   className="text-gray-400"
                 />
                 <span>
-                  Acreditación: <span className="font-medium text-gray-800">{method.diasAcreditacion} días</span>
+                  Acreditación:{" "}
+                  <span className="font-medium text-gray-800">
+                    {method.diasAcreditacion} días
+                  </span>
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -404,7 +443,10 @@
                   className="text-gray-400"
                 />
                 <span>
-                  Cuotas: <span className="font-medium text-gray-800">{method.cuotas}</span>
+                  Cuotas:{" "}
+                  <span className="font-medium text-gray-800">
+                    {method.cuotas}
+                  </span>
                 </span>
               </div>
             </div>
@@ -415,8 +457,13 @@
                   onClick={() => setShowInstructions(!showInstructions)}
                   className="text-xs font-medium text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors"
                 >
-                  {showInstructions ? 'Ocultar instrucciones' : 'Ver instrucciones'}
-                  <LucideIcon name={showInstructions ? "ChevronUp" : "ChevronDown"} size={14} />
+                  {showInstructions
+                    ? "Ocultar instrucciones"
+                    : "Ver instrucciones"}
+                  <LucideIcon
+                    name={showInstructions ? "ChevronUp" : "ChevronDown"}
+                    size={14}
+                  />
                 </button>
                 {showInstructions && (
                   <div className="mt-2 p-2.5 bg-gray-50 border border-gray-200 rounded text-xs text-gray-700 italic">
@@ -438,7 +485,9 @@
                     </>
                   ) : (
                     <>
-                      Ver {alternatives.length} {alternatives.length === 1 ? 'opción' : 'opciones'} más <LucideIcon name="ChevronDown" size={16} />
+                      Ver {alternatives.length}{" "}
+                      {alternatives.length === 1 ? "opción" : "opciones"} más{" "}
+                      <LucideIcon name="ChevronDown" size={16} />
                     </>
                   )}
                 </button>
@@ -446,32 +495,56 @@
                 {showAlternatives && (
                   <div className="w-full mt-3 space-y-3">
                     {alternatives.map((alt) => (
-                      <div key={alt.method.id} className="bg-gray-50 rounded-lg p-3 border border-gray-200 text-sm">
+                      <div
+                        key={alt.method.id}
+                        className="bg-gray-50 rounded-lg p-3 border border-gray-200 text-sm"
+                      >
                         <div className="flex justify-between items-start mb-1">
-                          <span className="font-bold text-gray-800">{alt.method.medioCobro}</span>
-                          <span className="font-bold text-gray-900">{formatCurrency(alt.price)}</span>
+                          <span className="font-bold text-gray-800">
+                            {alt.method.medioCobro}
+                          </span>
+                          <span className="font-bold text-gray-900">
+                            {formatCurrency(alt.price)}
+                          </span>
                         </div>
                         <div className="text-gray-500 text-xs mb-2">
-                          {alt.method.banco !== "Todos" ? alt.method.banco : "Todos los bancos"}
+                          {alt.method.banco !== "Todos"
+                            ? alt.method.banco
+                            : "Todos los bancos"}
                         </div>
 
                         {alt.method.porcentaje_descuento_cliente > 0 && (
                           <div className="mb-2 p-1.5 bg-blue-50/50 border border-blue-100 rounded text-xs text-blue-800 flex items-start gap-1">
-                            <LucideIcon name="Tag" size={12} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                            <LucideIcon
+                              name="Tag"
+                              size={12}
+                              className="text-blue-600 mt-0.5 flex-shrink-0"
+                            />
                             <span>
-                              <span className="font-bold">{alt.method.porcentaje_descuento_cliente}% OFF</span>
-                              {alt.method.tope_reintegro > 0 && ` (Tope: $${alt.method.tope_reintegro})`}
+                              <span className="font-bold">
+                                {alt.method.porcentaje_descuento_cliente}% OFF
+                              </span>
+                              {alt.method.tope_reintegro > 0 &&
+                                ` (Tope: $${alt.method.tope_reintegro})`}
                             </span>
                           </div>
                         )}
 
                         <div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
                           <div className="flex items-center gap-1">
-                            <LucideIcon name="Calendar" size={12} className="text-gray-400" />
+                            <LucideIcon
+                              name="Calendar"
+                              size={12}
+                              className="text-gray-400"
+                            />
                             {alt.method.diasAcreditacion} días
                           </div>
                           <div className="flex items-center gap-1">
-                            <LucideIcon name="Percent" size={12} className="text-gray-400" />
+                            <LucideIcon
+                              name="Percent"
+                              size={12}
+                              className="text-gray-400"
+                            />
                             {alt.effectiveCommission.toFixed(2)}%
                           </div>
                         </div>
@@ -622,7 +695,11 @@
             if (!groupedByCuota[method.cuotas]) {
               groupedByCuota[method.cuotas] = [];
             }
-            groupedByCuota[method.cuotas].push({ method, price, effectiveCommission });
+            groupedByCuota[method.cuotas].push({
+              method,
+              price,
+              effectiveCommission,
+            });
           });
 
           // Restructure groups to have one "best" per medioPago and the rest as alternatives
@@ -650,17 +727,20 @@
               categoriesForCuota.push({
                 category,
                 bestOption,
-                alternatives
+                alternatives,
               });
             });
 
             // Sort categories by the best option's price so the cheapest overall appears first
-            categoriesForCuota.sort((a, b) => a.bestOption.price - b.bestOption.price);
+            categoriesForCuota.sort(
+              (a, b) => a.bestOption.price - b.bestOption.price,
+            );
 
             // Mark badges on the bestOption of each category
             categoriesForCuota.forEach((catGroup, idx) => {
               const item = catGroup.bestOption;
-              item.isBestOverall = Math.abs(item.price - overallBestPrice) < 0.01;
+              item.isBestOverall =
+                Math.abs(item.price - overallBestPrice) < 0.01;
               // Every top-level card is the best in its category, so we mark it if it's not the absolute best
               item.isBestInCategory = !item.isBestOverall;
             });
@@ -670,14 +750,24 @@
 
           // Flatten into a single array, sorted by cuotas, then by price
           const flattenedResults = [];
-          Object.keys(finalGrouped).sort((a, b) => Number(a) - Number(b)).forEach(cuota => {
-            finalGrouped[cuota].forEach(catGroup => {
-              flattenedResults.push(catGroup);
+          Object.keys(finalGrouped)
+            .sort((a, b) => Number(a) - Number(b))
+            .forEach((cuota) => {
+              finalGrouped[cuota].forEach((catGroup) => {
+                flattenedResults.push(catGroup);
+              });
             });
-          });
 
           return { flattenedResults, finalGrouped };
-        }, [montoNeto, methods, selectedBank, selectedCuota, isFlexible, onlyPromosToday, onlyInstallments]);
+        }, [
+          montoNeto,
+          methods,
+          selectedBank,
+          selectedCuota,
+          isFlexible,
+          onlyPromosToday,
+          onlyInstallments,
+        ]);
 
         return (
           <div className="max-w-4xl mx-auto p-4">
@@ -710,7 +800,9 @@
                     onChange={(e) => setOnlyPromosToday(e.target.checked)}
                     className="w-4 h-4 text-blue-600 rounded border-blue-300 focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-blue-800">Solo promos activas hoy</span>
+                  <span className="text-sm font-medium text-blue-800">
+                    Solo promos activas hoy
+                  </span>
                 </label>
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -719,7 +811,9 @@
                     onChange={(e) => setOnlyInstallments(e.target.checked)}
                     className="w-4 h-4 text-orange-500 rounded border-orange-300 focus:ring-orange-500"
                   />
-                  <span className="text-sm font-medium text-orange-800">Solo cuotas (+1)</span>
+                  <span className="text-sm font-medium text-orange-800">
+                    Solo cuotas (+1)
+                  </span>
                 </label>
               </div>
 
@@ -817,7 +911,9 @@
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
-              {montoNeto > 0 && resultsByInstallments.flattenedResults && resultsByInstallments.flattenedResults.length > 0 && (
+              {montoNeto > 0 &&
+                resultsByInstallments.flattenedResults &&
+                resultsByInstallments.flattenedResults.length > 0 &&
                 resultsByInstallments.flattenedResults.map((catGroup, idx) => {
                   const item = catGroup.bestOption;
                   return (
@@ -830,20 +926,29 @@
                       alternatives={catGroup.alternatives}
                     />
                   );
-                })
-              )}
+                })}
             </div>
 
-            {montoNeto > 0 && resultsByInstallments.flattenedResults && resultsByInstallments.flattenedResults.length === 0 && (
-              <div className="text-center text-gray-500 py-10 border-2 border-dashed border-gray-200 rounded-xl bg-white mt-4">
-                No se encontraron opciones para este filtro.
-              </div>
-            )}
+            {montoNeto > 0 &&
+              resultsByInstallments.flattenedResults &&
+              resultsByInstallments.flattenedResults.length === 0 && (
+                <div className="text-center text-gray-500 py-10 border-2 border-dashed border-gray-200 rounded-xl bg-white mt-4">
+                  No se encontraron opciones para este filtro.
+                </div>
+              )}
           </div>
         );
       };
 
-      const ConfigView = ({ methods, deletedMethods, onAdd, onEdit, onDelete, onRestore, onHardDelete }) => {
+      const ConfigView = ({
+        methods,
+        deletedMethods,
+        onAdd,
+        onEdit,
+        onDelete,
+        onRestore,
+        onHardDelete,
+      }) => {
         const [editingId, setEditingId] = useState(null);
         const [showTrash, setShowTrash] = useState(false);
         const [formData, setFormData] = useState({
@@ -1016,7 +1121,12 @@
         };
 
         const handleDuplicateClick = (method) => {
-          setFormData({ ...method, id: undefined, marketingNotes: "", marketingImages: [] });
+          setFormData({
+            ...method,
+            id: undefined,
+            marketingNotes: "",
+            marketingImages: [],
+          });
           setEditingId(null);
           window.scrollTo({ top: 0, behavior: "smooth" });
         };
@@ -1346,11 +1456,15 @@
                 <button
                   onClick={() => setShowTrash(!showTrash)}
                   className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
-                    showTrash ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    showTrash
+                      ? "bg-red-100 text-red-700"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
                 >
                   <LucideIcon name="Trash2" size={16} />
-                  {showTrash ? "Ver Activos" : `Ver Papelera (${deletedMethods.length})`}
+                  {showTrash
+                    ? "Ver Activos"
+                    : `Ver Papelera (${deletedMethods.length})`}
                 </button>
               </div>
               <div className="overflow-x-auto">
@@ -1377,15 +1491,15 @@
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             {showTrash ? (
-                               <span className="px-2.5 py-1 text-xs font-semibold rounded-full border bg-gray-100 text-gray-600 border-gray-300">
-                                 Eliminado
-                               </span>
+                              <span className="px-2.5 py-1 text-xs font-semibold rounded-full border bg-gray-100 text-gray-600 border-gray-300">
+                                Eliminado
+                              </span>
                             ) : (
-                               <span
-                                 className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${status.color}`}
-                               >
-                                 {status.label}
-                               </span>
+                              <span
+                                className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${status.color}`}
+                              >
+                                {status.label}
+                              </span>
                             )}
                           </td>
                           <td className="px-6 py-4 font-medium text-gray-900">
@@ -1501,7 +1615,9 @@
                           colSpan="8"
                           className="p-8 text-center text-gray-400"
                         >
-                          {showTrash ? "La papelera está vacía." : "No hay medios de cobro configurados."}
+                          {showTrash
+                            ? "La papelera está vacía."
+                            : "No hay medios de cobro configurados."}
                         </td>
                       </tr>
                     )}
@@ -1602,19 +1718,21 @@
 
           for (let i = 1; i <= daysInMonth; i++) {
             // pad with zero for YYYY-MM-DD
-            const m = String(month + 1).padStart(2, '0');
-            const d = String(i).padStart(2, '0');
+            const m = String(month + 1).padStart(2, "0");
+            const d = String(i).padStart(2, "0");
             const dateStr = `${year}-${m}-${d}`;
 
             // Find promos that overlap with this date and are valid on this weekday
             const dateObj = new Date(year, month, i);
             const dayOfWeek = dateObj.getDay();
 
-            const activePromos = methods.filter(promo => {
+            const activePromos = methods.filter((promo) => {
               if (!promo.esPromocion) return false;
 
-              const startDateValid = !promo.fecha_inicio || promo.fecha_inicio <= dateStr;
-              const endDateValid = !promo.fecha_fin || promo.fecha_fin >= dateStr;
+              const startDateValid =
+                !promo.fecha_inicio || promo.fecha_inicio <= dateStr;
+              const endDateValid =
+                !promo.fecha_fin || promo.fecha_fin >= dateStr;
               const dayOfWeekValid = promo.dias_semana.includes(dayOfWeek);
 
               return startDateValid && endDateValid && dayOfWeekValid;
@@ -1626,10 +1744,22 @@
         }, [currentMonth, methods]);
 
         const nextMonth = () => {
-          setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+          setCurrentMonth(
+            new Date(
+              currentMonth.getFullYear(),
+              currentMonth.getMonth() + 1,
+              1,
+            ),
+          );
         };
         const prevMonth = () => {
-          setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+          setCurrentMonth(
+            new Date(
+              currentMonth.getFullYear(),
+              currentMonth.getMonth() - 1,
+              1,
+            ),
+          );
         };
 
         return (
@@ -1661,7 +1791,8 @@
                 </div>
               </div>
               <p className="text-gray-600 mb-6">
-                Revisá rápidamente las promociones bancarias vigentes o próximas para ofrecer a los clientes.
+                Revisá rápidamente las promociones bancarias vigentes o próximas
+                para ofrecer a los clientes.
               </p>
 
               {viewMode === "list" && (
@@ -1690,7 +1821,9 @@
                             onChange={(e) => setShowActive(e.target.checked)}
                             className="w-4 h-4 text-purple-600 rounded border-purple-300 focus:ring-purple-500"
                           />
-                          <span className="text-sm font-medium text-gray-700">Activas</span>
+                          <span className="text-sm font-medium text-gray-700">
+                            Activas
+                          </span>
                         </label>
                         <label className="flex items-center space-x-2 cursor-pointer">
                           <input
@@ -1699,188 +1832,289 @@
                             onChange={(e) => setShowUpcoming(e.target.checked)}
                             className="w-4 h-4 text-purple-600 rounded border-purple-300 focus:ring-purple-500"
                           />
-                          <span className="text-sm font-medium text-gray-700">Próximas</span>
+                          <span className="text-sm font-medium text-gray-700">
+                            Próximas
+                          </span>
                         </label>
                       </div>
                     </div>
                   </div>
 
                   {Object.keys(promotionsByBank).length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-                  <LucideIcon
-                    name="Tag"
-                    size={48}
-                    className="mx-auto text-gray-300 mb-3"
-                  />
-                  <p className="text-gray-500 font-medium">
-                    No hay promociones que coincidan con la búsqueda.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-8">
-                  {Object.entries(promotionsByBank).map(([banco, promos]) => (
-                    <div
-                      key={banco}
-                      className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm"
-                    >
-                      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                        <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
-                          <LucideIcon
-                            name="Landmark"
-                            size={20}
-                            className="text-gray-500"
-                          />
-                          {banco}
-                        </h3>
-                      </div>
-                      <div className="divide-y divide-gray-100">
-                        {promos.map((promo) => {
-                          const status = getPromoStatus(promo);
-                          const isUpcoming = status === "upcoming";
-                          const isExpanded = expandedPromoId === promo.id;
+                    <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+                      <LucideIcon
+                        name="Tag"
+                        size={48}
+                        className="mx-auto text-gray-300 mb-3"
+                      />
+                      <p className="text-gray-500 font-medium">
+                        No hay promociones que coincidan con la búsqueda.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-8">
+                      {Object.entries(promotionsByBank).map(
+                        ([banco, promos]) => (
+                          <div
+                            key={banco}
+                            className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm"
+                          >
+                            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                              <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+                                <LucideIcon
+                                  name="Landmark"
+                                  size={20}
+                                  className="text-gray-500"
+                                />
+                                {banco}
+                              </h3>
+                            </div>
+                            <div className="divide-y divide-gray-100">
+                              {promos.map((promo) => {
+                                const status = getPromoStatus(promo);
+                                const isUpcoming = status === "upcoming";
+                                const isExpanded = expandedPromoId === promo.id;
 
-                          return (
-                            <div
-                              key={promo.id}
-                              className={`p-4 transition-colors ${isExpanded ? 'bg-purple-50/30' : 'hover:bg-gray-50/50'} cursor-pointer`}
-                              onClick={() => setExpandedPromoId(isExpanded ? null : promo.id)}
-                            >
-                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                                <div className="flex-grow">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-bold text-lg text-gray-900">
-                                      {promo.medioCobro}
-                                    </span>
-                                    <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
-                                      {promo.medioPago}
-                                    </span>
-                                    {isUpcoming && (
-                                      <span className="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full border border-orange-200">
-                                        Próximamente
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mt-2">
-                                    {promo.porcentaje_descuento_cliente > 0 && (
-                                      <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 text-sm text-green-700 font-medium bg-green-50 px-2 py-1 rounded border border-green-100">
-                                        <div className="flex items-center gap-1.5">
-                                          <LucideIcon name="BadgePercent" size={16} />
-                                          {promo.porcentaje_descuento_cliente}% de reintegro
-                                        </div>
-                                        {promo.tope_reintegro > 0 && (
-                                          <span className="text-xs ml-0 sm:ml-1 opacity-90 border-t sm:border-t-0 sm:border-l border-green-200 pt-1 sm:pt-0 sm:pl-2 mt-1 sm:mt-0">
-                                            (Tope: ${promo.tope_reintegro} {promo.tipo_tope === 'por_mes' ? 'por mes' : 'por transacción'})
+                                return (
+                                  <div
+                                    key={promo.id}
+                                    className={`p-4 transition-colors ${isExpanded ? "bg-purple-50/30" : "hover:bg-gray-50/50"} cursor-pointer`}
+                                    onClick={() =>
+                                      setExpandedPromoId(
+                                        isExpanded ? null : promo.id,
+                                      )
+                                    }
+                                  >
+                                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                                      <div className="flex-grow">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="font-bold text-lg text-gray-900">
+                                            {promo.medioCobro}
                                           </span>
+                                          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
+                                            {promo.medioPago}
+                                          </span>
+                                          {isUpcoming && (
+                                            <span className="text-xs font-semibold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full border border-orange-200">
+                                              Próximamente
+                                            </span>
+                                          )}
+                                        </div>
+
+                                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mt-2">
+                                          {promo.porcentaje_descuento_cliente >
+                                            0 && (
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 text-sm text-green-700 font-medium bg-green-50 px-2 py-1 rounded border border-green-100">
+                                              <div className="flex items-center gap-1.5">
+                                                <LucideIcon
+                                                  name="BadgePercent"
+                                                  size={16}
+                                                />
+                                                {
+                                                  promo.porcentaje_descuento_cliente
+                                                }
+                                                % de reintegro
+                                              </div>
+                                              {promo.tope_reintegro > 0 && (
+                                                <span className="text-xs ml-0 sm:ml-1 opacity-90 border-t sm:border-t-0 sm:border-l border-green-200 pt-1 sm:pt-0 sm:pl-2 mt-1 sm:mt-0">
+                                                  (Tope: ${promo.tope_reintegro}{" "}
+                                                  {promo.tipo_tope === "por_mes"
+                                                    ? "por mes"
+                                                    : "por transacción"}
+                                                  )
+                                                </span>
+                                              )}
+                                            </div>
+                                          )}
+                                          <div className="flex items-center gap-1.5 text-sm text-blue-700 font-medium">
+                                            <LucideIcon
+                                              name="CreditCard"
+                                              size={16}
+                                            />
+                                            {promo.cuotas}{" "}
+                                            {promo.cuotas === 1
+                                              ? "cuota"
+                                              : "cuotas"}
+                                          </div>
+                                        </div>
+                                      </div>
+
+                                      <div
+                                        className={`p-3 rounded-lg border min-w-[200px] text-sm ${isUpcoming ? "bg-orange-50 border-orange-100 text-orange-900" : "bg-purple-50 border-purple-100 text-purple-900"}`}
+                                      >
+                                        <div className="font-semibold mb-1 flex items-center gap-1">
+                                          <LucideIcon
+                                            name="CalendarDays"
+                                            size={14}
+                                          />{" "}
+                                          Vigencia:
+                                        </div>
+                                        {promo.dias_semana.length < 7 ? (
+                                          <div
+                                            className={`ml-5 ${isUpcoming ? "text-orange-700" : "text-purple-700"}`}
+                                          >
+                                            Días:{" "}
+                                            {promo.dias_semana
+                                              .map((d) => diasSemanaNombres[d])
+                                              .join(", ")}
+                                          </div>
+                                        ) : (
+                                          <div
+                                            className={`ml-5 ${isUpcoming ? "text-orange-700" : "text-purple-700"}`}
+                                          >
+                                            Todos los días
+                                          </div>
+                                        )}
+                                        {promo.fecha_inicio && isUpcoming && (
+                                          <div
+                                            className={`ml-5 font-medium mt-1 ${isUpcoming ? "text-orange-700" : "text-purple-700"}`}
+                                          >
+                                            Desde:{" "}
+                                            {new Date(
+                                              promo.fecha_inicio,
+                                            ).toLocaleDateString("es-AR")}
+                                          </div>
+                                        )}
+                                        {promo.fecha_fin && (
+                                          <div
+                                            className={`ml-5 mt-1 ${isUpcoming ? "text-orange-700" : "text-purple-700"}`}
+                                          >
+                                            Hasta:{" "}
+                                            {new Date(
+                                              promo.fecha_fin,
+                                            ).toLocaleDateString("es-AR")}
+                                          </div>
                                         )}
                                       </div>
+                                    </div>
+
+                                    {/* Expandable details area */}
+                                    {isExpanded && (
+                                      <div className="mt-4 pt-4 border-t border-purple-100 animate-fadeIn">
+                                        <h4 className="font-semibold text-sm text-gray-800 mb-2">
+                                          Detalles de la Promoción
+                                        </h4>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                          <div className="text-sm text-gray-600 bg-white p-3 rounded border border-gray-100">
+                                            <p>
+                                              <span className="font-medium text-gray-700">
+                                                Comisión del comercio:
+                                              </span>{" "}
+                                              {promo.comisionBase}% +{" "}
+                                              {promo.comisionFinanc}%{" "}
+                                              {promo.incluyeIVA
+                                                ? "(Inc. IVA)"
+                                                : "(+ IVA)"}
+                                            </p>
+                                            <p className="mt-1">
+                                              <span className="font-medium text-gray-700">
+                                                Plazo de acreditación:
+                                              </span>{" "}
+                                              {promo.diasAcreditacion} días
+                                            </p>
+                                            {promo.categoriaProducto && (
+                                              <p className="mt-1">
+                                                <span className="font-medium text-gray-700">
+                                                  Categoría:
+                                                </span>{" "}
+                                                {promo.categoriaProducto}
+                                              </p>
+                                            )}
+                                          </div>
+                                          <div className="text-sm text-gray-600 bg-white p-3 rounded border border-gray-100">
+                                            <p className="font-medium text-gray-700 mb-1">
+                                              Instrucciones / Comentarios:
+                                            </p>
+                                            <p className="italic">
+                                              {promo.instrucciones ||
+                                                "No hay instrucciones adicionales cargadas."}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </div>
                                     )}
-                                    <div className="flex items-center gap-1.5 text-sm text-blue-700 font-medium">
-                                      <LucideIcon name="CreditCard" size={16} />
-                                      {promo.cuotas} {promo.cuotas === 1 ? "cuota" : "cuotas"}
-                                    </div>
                                   </div>
-                                </div>
-
-                                <div className={`p-3 rounded-lg border min-w-[200px] text-sm ${isUpcoming ? 'bg-orange-50 border-orange-100 text-orange-900' : 'bg-purple-50 border-purple-100 text-purple-900'}`}>
-                                  <div className="font-semibold mb-1 flex items-center gap-1">
-                                    <LucideIcon name="CalendarDays" size={14} /> Vigencia:
-                                  </div>
-                                  {promo.dias_semana.length < 7 ? (
-                                    <div className={`ml-5 ${isUpcoming ? 'text-orange-700' : 'text-purple-700'}`}>
-                                      Días: {promo.dias_semana.map((d) => diasSemanaNombres[d]).join(", ")}
-                                    </div>
-                                  ) : (
-                                    <div className={`ml-5 ${isUpcoming ? 'text-orange-700' : 'text-purple-700'}`}>
-                                      Todos los días
-                                    </div>
-                                  )}
-                                  {promo.fecha_inicio && isUpcoming && (
-                                    <div className={`ml-5 font-medium mt-1 ${isUpcoming ? 'text-orange-700' : 'text-purple-700'}`}>
-                                      Desde: {new Date(promo.fecha_inicio).toLocaleDateString("es-AR")}
-                                    </div>
-                                  )}
-                                  {promo.fecha_fin && (
-                                    <div className={`ml-5 mt-1 ${isUpcoming ? 'text-orange-700' : 'text-purple-700'}`}>
-                                      Hasta: {new Date(promo.fecha_fin).toLocaleDateString("es-AR")}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Expandable details area */}
-                              {isExpanded && (
-                                <div className="mt-4 pt-4 border-t border-purple-100 animate-fadeIn">
-                                  <h4 className="font-semibold text-sm text-gray-800 mb-2">Detalles de la Promoción</h4>
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div className="text-sm text-gray-600 bg-white p-3 rounded border border-gray-100">
-                                      <p><span className="font-medium text-gray-700">Comisión del comercio:</span> {promo.comisionBase}% + {promo.comisionFinanc}% {promo.incluyeIVA ? "(Inc. IVA)" : "(+ IVA)"}</p>
-                                      <p className="mt-1"><span className="font-medium text-gray-700">Plazo de acreditación:</span> {promo.diasAcreditacion} días</p>
-                                      {promo.categoriaProducto && (
-                                        <p className="mt-1"><span className="font-medium text-gray-700">Categoría:</span> {promo.categoriaProducto}</p>
-                                      )}
-                                    </div>
-                                    <div className="text-sm text-gray-600 bg-white p-3 rounded border border-gray-100">
-                                      <p className="font-medium text-gray-700 mb-1">Instrucciones / Comentarios:</p>
-                                      <p className="italic">{promo.instrucciones || "No hay instrucciones adicionales cargadas."}</p>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
+                                );
+                              })}
                             </div>
-                          );
-                        })}
-                      </div>
+                          </div>
+                        ),
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-              </>
+                  )}
+                </>
               )}
 
               {viewMode === "calendar" && (
                 <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                   {/* Calendar Header */}
                   <div className="flex justify-between items-center p-4 bg-gray-50 border-b border-gray-200">
-                    <button onClick={prevMonth} className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors">
+                    <button
+                      onClick={prevMonth}
+                      className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+                    >
                       <LucideIcon name="ChevronLeft" size={20} />
                     </button>
                     <h3 className="text-lg font-bold text-gray-800 capitalize">
-                      {currentMonth.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' })}
+                      {currentMonth.toLocaleDateString("es-AR", {
+                        month: "long",
+                        year: "numeric",
+                      })}
                     </h3>
-                    <button onClick={nextMonth} className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors">
+                    <button
+                      onClick={nextMonth}
+                      className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors"
+                    >
                       <LucideIcon name="ChevronRight" size={20} />
                     </button>
                   </div>
 
                   {/* Calendar Grid */}
                   <div className="grid grid-cols-7 text-center text-xs sm:text-sm font-semibold text-gray-500 bg-gray-50 border-b border-gray-200">
-                    {diasSemanaNombres.map(dia => (
-                      <div key={dia} className="py-2">{dia}</div>
+                    {diasSemanaNombres.map((dia) => (
+                      <div key={dia} className="py-2">
+                        {dia}
+                      </div>
                     ))}
                   </div>
                   <div className="grid grid-cols-7 gap-px bg-gray-200">
                     {calendarDays.map((dayData, idx) => (
-                      <div key={idx} className={`min-h-[80px] sm:min-h-[120px] bg-white p-1 sm:p-2 flex flex-col ${!dayData ? 'opacity-50 bg-gray-50' : ''}`}>
+                      <div
+                        key={idx}
+                        className={`min-h-[80px] sm:min-h-[120px] bg-white p-1 sm:p-2 flex flex-col ${!dayData ? "opacity-50 bg-gray-50" : ""}`}
+                      >
                         {dayData && (
                           <>
-                            <div className="text-right text-xs sm:text-sm font-medium text-gray-500 mb-1">{dayData.day}</div>
+                            <div className="text-right text-xs sm:text-sm font-medium text-gray-500 mb-1">
+                              {dayData.day}
+                            </div>
                             <div className="flex-grow flex flex-col gap-1 overflow-y-auto">
-                              {dayData.activePromos.map(promo => {
-                                const isStart = promo.fecha_inicio === dayData.dateStr;
-                                const isEnd = promo.fecha_fin === dayData.dateStr;
+                              {dayData.activePromos.map((promo) => {
+                                const isStart =
+                                  promo.fecha_inicio === dayData.dateStr;
+                                const isEnd =
+                                  promo.fecha_fin === dayData.dateStr;
                                 return (
-                                  <div key={`${promo.id}-${idx}`}
+                                  <div
+                                    key={`${promo.id}-${idx}`}
                                     className={`text-[9px] sm:text-[10px] leading-tight p-1 rounded font-medium flex items-center justify-between cursor-pointer hover:opacity-80
-                                      ${isStart ? 'bg-green-100 text-green-800 border-l-2 border-green-500' :
-                                        isEnd ? 'bg-red-100 text-red-800 border-l-2 border-red-500' :
-                                        'bg-purple-50 text-purple-700'}`}
+                                      ${
+                                        isStart
+                                          ? "bg-green-100 text-green-800 border-l-2 border-green-500"
+                                          : isEnd
+                                            ? "bg-red-100 text-red-800 border-l-2 border-red-500"
+                                            : "bg-purple-50 text-purple-700"
+                                      }`}
                                     onMouseEnter={(e) => {
-                                      const rect = e.currentTarget.getBoundingClientRect();
+                                      const rect =
+                                        e.currentTarget.getBoundingClientRect();
                                       setTooltipData({
                                         promo,
-                                        x: rect.left + window.scrollX + rect.width / 2,
-                                        y: rect.top + window.scrollY - 10
+                                        x:
+                                          rect.left +
+                                          window.scrollX +
+                                          rect.width / 2,
+                                        y: rect.top + window.scrollY - 10,
                                       });
                                     }}
                                     onMouseLeave={() => setTooltipData(null)}
@@ -1889,11 +2123,25 @@
                                       setExpandedPromoId(promo.id);
                                     }}
                                   >
-                                    <span className="truncate">{promo.banco}</span>
-                                    {isStart && <LucideIcon name="Play" size={10} className="flex-shrink-0" />}
-                                    {isEnd && <LucideIcon name="Square" size={10} className="flex-shrink-0" />}
+                                    <span className="truncate">
+                                      {promo.banco}
+                                    </span>
+                                    {isStart && (
+                                      <LucideIcon
+                                        name="Play"
+                                        size={10}
+                                        className="flex-shrink-0"
+                                      />
+                                    )}
+                                    {isEnd && (
+                                      <LucideIcon
+                                        name="Square"
+                                        size={10}
+                                        className="flex-shrink-0"
+                                      />
+                                    )}
                                   </div>
-                                )
+                                );
                               })}
                             </div>
                           </>
@@ -1902,9 +2150,18 @@
                     ))}
                   </div>
                   <div className="p-4 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex gap-4 justify-center">
-                    <div className="flex items-center gap-1"><span className="w-3 h-3 bg-green-100 border-l-2 border-green-500 rounded-sm inline-block"></span> Inicio Promo</div>
-                    <div className="flex items-center gap-1"><span className="w-3 h-3 bg-purple-50 rounded-sm inline-block"></span> Promo Activa</div>
-                    <div className="flex items-center gap-1"><span className="w-3 h-3 bg-red-100 border-l-2 border-red-500 rounded-sm inline-block"></span> Fin Promo</div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-3 h-3 bg-green-100 border-l-2 border-green-500 rounded-sm inline-block"></span>{" "}
+                      Inicio Promo
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-3 h-3 bg-purple-50 rounded-sm inline-block"></span>{" "}
+                      Promo Activa
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-3 h-3 bg-red-100 border-l-2 border-red-500 rounded-sm inline-block"></span>{" "}
+                      Fin Promo
+                    </div>
                   </div>
 
                   {tooltipData && (
@@ -1914,23 +2171,308 @@
                     >
                       <div className="font-bold text-gray-900 mb-1 flex items-center justify-between">
                         <span>{tooltipData.promo.banco}</span>
-                        <span className="text-xs font-normal text-gray-500">{tooltipData.promo.medioCobro}</span>
+                        <span className="text-xs font-normal text-gray-500">
+                          {tooltipData.promo.medioCobro}
+                        </span>
                       </div>
                       <div className="text-green-700 font-bold mb-2">
                         {tooltipData.promo.porcentaje_descuento_cliente}% OFF
-                        {tooltipData.promo.tope_reintegro > 0 && <span className="text-xs text-gray-500 font-normal ml-1 block mt-1">(Tope: ${tooltipData.promo.tope_reintegro} {tooltipData.promo.tipo_tope === "por_transaccion" ? "x Transacción" : "x Mes"})</span>}
+                        {tooltipData.promo.tope_reintegro > 0 && (
+                          <span className="text-xs text-gray-500 font-normal ml-1 block mt-1">
+                            (Tope: ${tooltipData.promo.tope_reintegro}{" "}
+                            {tooltipData.promo.tipo_tope === "por_transaccion"
+                              ? "x Transacción"
+                              : "x Mes"}
+                            )
+                          </span>
+                        )}
                       </div>
                       <div className="text-xs text-gray-600 mb-1 flex items-center gap-1">
-                        <LucideIcon name="CreditCard" size={12} /> {tooltipData.promo.medioPago} ({tooltipData.promo.cuotas} cuota/s)
+                        <LucideIcon name="CreditCard" size={12} />{" "}
+                        {tooltipData.promo.medioPago} (
+                        {tooltipData.promo.cuotas} cuota/s)
                       </div>
                       <div className="text-xs text-gray-600 flex items-center gap-1">
-                        <LucideIcon name="Calendar" size={12} /> {tooltipData.promo.diasAcreditacion} días acred.
+                        <LucideIcon name="Calendar" size={12} />{" "}
+                        {tooltipData.promo.diasAcreditacion} días acred.
                       </div>
                       <div className="absolute w-3 h-3 bg-white border-b border-r border-gray-200 transform rotate-45 -bottom-1.5 left-1/2 -ml-1.5"></div>
                     </div>
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        );
+      };
+
+      const ManualView = () => {
+        const [expandedSection, setExpandedSection] = useState(null);
+
+        const toggleSection = (section) => {
+          setExpandedSection(expandedSection === section ? null : section);
+        };
+
+        const sections = [
+          {
+            id: "calculadora",
+            title: "Calculadora",
+            icon: "Calculator",
+            content: (
+              <div className="space-y-4 text-gray-700">
+                <p>
+                  La <strong>Calculadora Inversa de Cobros</strong> te permite
+                  determinar a qué precio debes vender un producto para que,
+                  después de descontar las comisiones del medio de cobro elegido
+                  y la inflación, te quede el{" "}
+                  <strong>Precio Contado (Monto Neto)</strong> que deseas.
+                </p>
+                <img
+                  src="calculator_view_updated.png"
+                  alt="Vista de la Calculadora"
+                  className="w-full border rounded-lg shadow-sm"
+                />
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    <strong>Precio de Lista / Venta:</strong> Ingresa el precio
+                    que vas a mostrar al cliente.
+                  </li>
+                  <li>
+                    <strong>% Inflado (Descuento efvo):</strong> Si el precio de
+                    lista está inflado para ofrecer un descuento por pago en
+                    efectivo, ingresa ese porcentaje aquí. El sistema calculará
+                    el <strong>Monto Neto</strong> base automáticamente.
+                  </li>
+                  <li>
+                    <strong>Solo Hoy / Flexible (7 días):</strong> Selecciona si
+                    quieres ver solo las promociones válidas el día de hoy, o
+                    aquellas que estarán vigentes en los próximos 7 días.
+                  </li>
+                  <li>
+                    <strong>Filtros rápidos:</strong> Usa "Solo promos activas
+                    hoy" o "Solo cuotas" para acotar los resultados.
+                  </li>
+                  <li>
+                    <strong>Resultados:</strong> Te mostrará las opciones de
+                    cobro organizadas de la más barata a la más cara. La mejor
+                    opción resaltará en verde. Cada tarjeta puede expandirse
+                    para "Ver más opciones" del mismo tipo.
+                  </li>
+                </ul>
+              </div>
+            ),
+          },
+          {
+            id: "promociones",
+            title: "Promociones",
+            icon: "Gift",
+            content: (
+              <div className="space-y-4 text-gray-700">
+                <p>
+                  La sección de <strong>Promociones</strong> te ayuda a
+                  consultar rápidamente qué promociones bancarias o de
+                  billeteras virtuales están activas hoy o en el futuro cercano.
+                </p>
+                <img
+                  src="promotions_tab.png"
+                  alt="Pestaña de Promociones"
+                  className="w-full border rounded-lg shadow-sm"
+                />
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    <strong>Vista Lista / Calendario:</strong> Alterna entre ver
+                    las promos en una lista agrupada por banco o en un
+                    calendario mensual.
+                  </li>
+                  <li>
+                    <strong>Buscador y Filtros:</strong> Puedes buscar por
+                    banco, billetera o medio de pago, y filtrar entre promos
+                    "Activas" o "Próximas".
+                  </li>
+                  <li>
+                    <strong>Detalles de Promo:</strong> Al hacer clic en una
+                    promoción de la lista, se despliegan detalles extra como la
+                    comisión del comercio, plazo de acreditación y cualquier
+                    instrucción especial.
+                  </li>
+                  <li>
+                    <strong>Calendario Interactivo:</strong> En la vista de
+                    calendario, pasa el ratón sobre una promoción para ver un
+                    resumen rápido (tooltip), o haz clic en ella para ir a sus
+                    detalles en la lista.
+                  </li>
+                </ul>
+              </div>
+            ),
+          },
+          {
+            id: "novedades",
+            title: "Novedades",
+            icon: "Bell",
+            content: (
+              <div className="space-y-4 text-gray-700">
+                <p>
+                  La pestaña de <strong>Novedades</strong> es tu resumen diario.
+                  Te muestra de un vistazo qué está pasando con tus promociones.
+                </p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    <strong>Promociones que inician:</strong> Listado de las
+                    promociones que comenzarán a ser válidas en los próximos 7
+                    días. ¡Ideal para preparar anuncios!
+                  </li>
+                  <li>
+                    <strong>Promociones por vencer:</strong> Alertas sobre las
+                    promociones que terminarán en los próximos 7 días, para que
+                    las aproveches antes de que desaparezcan.
+                  </li>
+                  <li>
+                    <strong>Promociones vencidas:</strong> Un historial de las
+                    promociones que caducaron en los últimos 7 días.
+                  </li>
+                </ul>
+              </div>
+            ),
+          },
+          {
+            id: "marketing",
+            title: "Marketing",
+            icon: "Megaphone",
+            content: (
+              <div className="space-y-4 text-gray-700">
+                <p>
+                  El <strong>Panel de Marketing</strong> es un espacio privado
+                  para planificar y organizar la comunicación de tus medios de
+                  cobro.
+                </p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    <strong>Notas privadas:</strong> Cada medio de cobro tiene
+                    un espacio para anotar ideas de campañas, recordatorios de
+                    publicación, etc. Estas notas no se ven en la calculadora.
+                  </li>
+                  <li>
+                    <strong>Gestión de Flyers:</strong> Puedes subir imágenes
+                    (flyers) asociados a cada promoción. Te permite tener a mano
+                    el material gráfico para compartir por WhatsApp o redes
+                    sociales.
+                  </li>
+                  <li>
+                    <strong>Buscador:</strong> Filtra rápidamente para encontrar
+                    la promoción a la que quieres agregar material.
+                  </li>
+                </ul>
+              </div>
+            ),
+          },
+          {
+            id: "configuracion",
+            title: "Configuración",
+            icon: "Settings",
+            content: (
+              <div className="space-y-4 text-gray-700">
+                <p>
+                  La <strong>Configuración</strong> es el corazón de la
+                  aplicación. Aquí es donde agregas, editas y eliminas los
+                  diferentes métodos de cobro que ofreces.
+                </p>
+                <img
+                  src="config_view_updated.png"
+                  alt="Vista de Configuración"
+                  className="w-full border rounded-lg shadow-sm"
+                />
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    <strong>Agregar/Editar Medio:</strong> Llena el formulario
+                    con los datos de tu método de cobro: comisiones, banco,
+                    cuotas, fechas de vigencia, etc.
+                  </li>
+                  <li>
+                    <strong>Promoción Destacada:</strong> Si marcas "Es una
+                    promoción destacada", el método aparecerá en las pestañas de
+                    "Promociones" y "Novedades".
+                  </li>
+                  <li>
+                    <strong>Duplicar:</strong> Utiliza el botón de "Duplicar"
+                    (ícono de dos hojas) en la tabla para copiar rápidamente un
+                    método existente y cambiarle solo algunos datos (ej.
+                    distintas cuotas para el mismo banco).
+                  </li>
+                  <li>
+                    <strong>Papelera (7 días):</strong> Cuando eliminas un
+                    método, va a la papelera. Tienes 7 días para restaurarlo o
+                    eliminarlo permanentemente antes de que el sistema lo borre
+                    automáticamente.
+                  </li>
+                </ul>
+              </div>
+            ),
+          },
+        ];
+
+        return (
+          <div className="max-w-4xl mx-auto p-4">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg">
+                  <LucideIcon name="BookOpen" size={24} />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800">
+                  Manual de Usuario
+                </h2>
+              </div>
+              <p className="text-gray-600 mb-8">
+                Bienvenido al manual de uso. Haz clic en las diferentes
+                secciones a continuación para entender cómo funciona cada parte
+                de la aplicación.
+              </p>
+
+              <div className="space-y-4">
+                {sections.map((section) => {
+                  const isExpanded = expandedSection === section.id;
+                  return (
+                    <div
+                      key={section.id}
+                      className="border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm"
+                    >
+                      <button
+                        onClick={() => toggleSection(section.id)}
+                        className={`w-full flex items-center justify-between p-4 text-left transition-colors ${
+                          isExpanded ? "bg-indigo-50" : "hover:bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <LucideIcon
+                            name={section.icon}
+                            size={20}
+                            className={
+                              isExpanded ? "text-indigo-600" : "text-gray-500"
+                            }
+                          />
+                          <span
+                            className={`font-semibold text-lg ${isExpanded ? "text-indigo-900" : "text-gray-800"}`}
+                          >
+                            {section.title}
+                          </span>
+                        </div>
+                        <LucideIcon
+                          name={isExpanded ? "ChevronUp" : "ChevronDown"}
+                          size={20}
+                          className={
+                            isExpanded ? "text-indigo-600" : "text-gray-400"
+                          }
+                        />
+                      </button>
+
+                      {isExpanded && (
+                        <div className="p-5 border-t border-gray-100 bg-gray-50 animate-fadeIn">
+                          {section.content}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         );
@@ -1973,7 +2515,7 @@
           const msPerDay = 1000 * 60 * 60 * 24;
           let changed = false;
 
-          const purgedMethods = methods.filter(m => {
+          const purgedMethods = methods.filter((m) => {
             if (m.deletedAt) {
               const deletedDate = new Date(m.deletedAt);
               const diffDays = Math.floor((now - deletedDate) / msPerDay);
@@ -1994,8 +2536,14 @@
           localStorage.setItem("paymentMethods", JSON.stringify(methods));
         }, [methods]);
 
-        const activeMethods = useMemo(() => methods.filter(m => !m.deletedAt), [methods]);
-        const deletedMethods = useMemo(() => methods.filter(m => m.deletedAt), [methods]);
+        const activeMethods = useMemo(
+          () => methods.filter((m) => !m.deletedAt),
+          [methods],
+        );
+        const deletedMethods = useMemo(
+          () => methods.filter((m) => m.deletedAt),
+          [methods],
+        );
 
         const addMethod = (method) => {
           setMethods([...methods, method]);
@@ -2008,18 +2556,32 @@
         };
 
         const deleteMethod = (id) => {
-          if (confirm("¿Estás seguro de enviar este medio de cobro a la papelera por 7 días?")) {
-            setMethods(methods.map(m => m.id === id ? { ...m, deletedAt: new Date().toISOString() } : m));
+          if (
+            confirm(
+              "¿Estás seguro de enviar este medio de cobro a la papelera por 7 días?",
+            )
+          ) {
+            setMethods(
+              methods.map((m) =>
+                m.id === id ? { ...m, deletedAt: new Date().toISOString() } : m,
+              ),
+            );
           }
         };
 
         const restoreMethod = (id) => {
-          setMethods(methods.map(m => m.id === id ? { ...m, deletedAt: null } : m));
+          setMethods(
+            methods.map((m) => (m.id === id ? { ...m, deletedAt: null } : m)),
+          );
         };
 
         const hardDeleteMethod = (id) => {
-          if (confirm("¿Estás seguro de eliminar PERMANENTEMENTE este medio de cobro? Esta acción no se puede deshacer.")) {
-            setMethods(methods.filter(m => m.id !== id));
+          if (
+            confirm(
+              "¿Estás seguro de eliminar PERMANENTEMENTE este medio de cobro? Esta acción no se puede deshacer.",
+            )
+          ) {
+            setMethods(methods.filter((m) => m.id !== id));
           }
         };
 
@@ -2036,10 +2598,19 @@
           <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-20">
             <Header currentView={view} onViewChange={setView} />
 
-            {view === "calculator" && <CalculatorView methods={activeMethods} />}
-            {view === "promotions" && <PromotionsView methods={activeMethods} />}
-            {view === "notifications" && <NotificationsView methods={activeMethods} />}
-            {view === "marketing" && <MarketingView methods={activeMethods} onEdit={editMethod} />}
+            {view === "calculator" && (
+              <CalculatorView methods={activeMethods} />
+            )}
+            {view === "promotions" && (
+              <PromotionsView methods={activeMethods} />
+            )}
+            {view === "notifications" && (
+              <NotificationsView methods={activeMethods} />
+            )}
+            {view === "marketing" && (
+              <MarketingView methods={activeMethods} onEdit={editMethod} />
+            )}
+            {view === "manual" && <ManualView />}
             {view === "config" && (
               <ConfigView
                 methods={activeMethods}
@@ -2062,17 +2633,23 @@
         const nextWeekStr = nextWeek.toISOString().split("T")[0];
 
         const nuevasPromos = useMemo(() => {
-          return methods.filter(m => {
-            if (!m.esPromocion || !m.fecha_inicio) return false;
-            return m.fecha_inicio >= todayStr && m.fecha_inicio <= nextWeekStr;
-          }).sort((a, b) => a.fecha_inicio.localeCompare(b.fecha_inicio));
+          return methods
+            .filter((m) => {
+              if (!m.esPromocion || !m.fecha_inicio) return false;
+              return (
+                m.fecha_inicio >= todayStr && m.fecha_inicio <= nextWeekStr
+              );
+            })
+            .sort((a, b) => a.fecha_inicio.localeCompare(b.fecha_inicio));
         }, [methods, todayStr, nextWeekStr]);
 
         const promosPorVencer = useMemo(() => {
-          return methods.filter(m => {
-            if (!m.esPromocion || !m.fecha_fin) return false;
-            return m.fecha_fin >= todayStr && m.fecha_fin <= nextWeekStr;
-          }).sort((a, b) => a.fecha_fin.localeCompare(b.fecha_fin));
+          return methods
+            .filter((m) => {
+              if (!m.esPromocion || !m.fecha_fin) return false;
+              return m.fecha_fin >= todayStr && m.fecha_fin <= nextWeekStr;
+            })
+            .sort((a, b) => a.fecha_fin.localeCompare(b.fecha_fin));
         }, [methods, todayStr, nextWeekStr]);
 
         const promosVencidas = useMemo(() => {
@@ -2080,10 +2657,12 @@
           lastWeek.setDate(lastWeek.getDate() - 7);
           const lastWeekStr = lastWeek.toISOString().split("T")[0];
 
-          return methods.filter(m => {
-            if (!m.esPromocion || !m.fecha_fin) return false;
-            return m.fecha_fin < todayStr && m.fecha_fin >= lastWeekStr;
-          }).sort((a, b) => b.fecha_fin.localeCompare(a.fecha_fin)); // Sort descending for expired
+          return methods
+            .filter((m) => {
+              if (!m.esPromocion || !m.fecha_fin) return false;
+              return m.fecha_fin < todayStr && m.fecha_fin >= lastWeekStr;
+            })
+            .sort((a, b) => b.fecha_fin.localeCompare(a.fecha_fin)); // Sort descending for expired
         }, [methods, todayStr]);
 
         const formatShortDate = (dateStr) => {
@@ -2091,7 +2670,10 @@
           const d = new Date(dateStr);
           // adjust for timezone offset to prevent showing previous day
           d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
-          return d.toLocaleDateString("es-AR", { day: 'numeric', month: 'short' });
+          return d.toLocaleDateString("es-AR", {
+            day: "numeric",
+            month: "short",
+          });
         };
 
         return (
@@ -2101,19 +2683,22 @@
                 <div className="p-3 bg-orange-100 text-orange-600 rounded-lg">
                   <LucideIcon name="Bell" size={24} />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800">
-                  Novedades
-                </h2>
+                <h2 className="text-2xl font-bold text-gray-800">Novedades</h2>
               </div>
               <p className="text-gray-600 mb-8">
-                Consultá al principio del día qué nuevas promociones se activan o cuáles están por vencer.
+                Consultá al principio del día qué nuevas promociones se activan
+                o cuáles están por vencer.
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Nuevas Promos */}
                 <div>
                   <h3 className="text-lg font-bold text-green-800 mb-4 flex items-center gap-2 border-b border-green-200 pb-2">
-                    <LucideIcon name="TrendingUp" size={20} className="text-green-600" />
+                    <LucideIcon
+                      name="TrendingUp"
+                      size={20}
+                      className="text-green-600"
+                    />
                     Promociones que inician (próximos 7 días)
                   </h3>
 
@@ -2123,11 +2708,22 @@
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {nuevasPromos.map(promo => (
-                        <div key={promo.id} className="p-3 bg-green-50 rounded-lg border border-green-100 flex justify-between items-start">
+                      {nuevasPromos.map((promo) => (
+                        <div
+                          key={promo.id}
+                          className="p-3 bg-green-50 rounded-lg border border-green-100 flex justify-between items-start"
+                        >
                           <div>
-                            <div className="font-bold text-gray-900">{promo.medioCobro} <span className="text-sm font-normal text-gray-500">({promo.banco})</span></div>
-                            <div className="text-sm text-gray-600 mt-1">{promo.porcentaje_descuento_cliente}% OFF - {promo.cuotas} cuotas</div>
+                            <div className="font-bold text-gray-900">
+                              {promo.medioCobro}{" "}
+                              <span className="text-sm font-normal text-gray-500">
+                                ({promo.banco})
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-600 mt-1">
+                              {promo.porcentaje_descuento_cliente}% OFF -{" "}
+                              {promo.cuotas} cuotas
+                            </div>
                           </div>
                           <div className="text-right">
                             <span className="inline-block px-2 py-1 bg-green-200 text-green-800 text-xs font-bold rounded">
@@ -2143,7 +2739,11 @@
                 {/* Promos por Vencer */}
                 <div>
                   <h3 className="text-lg font-bold text-red-800 mb-4 flex items-center gap-2 border-b border-red-200 pb-2">
-                    <LucideIcon name="AlertCircle" size={20} className="text-red-600" />
+                    <LucideIcon
+                      name="AlertCircle"
+                      size={20}
+                      className="text-red-600"
+                    />
                     Promociones por vencer (próximos 7 días)
                   </h3>
 
@@ -2153,11 +2753,22 @@
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {promosPorVencer.map(promo => (
-                        <div key={promo.id} className="p-3 bg-red-50 rounded-lg border border-red-100 flex justify-between items-start">
+                      {promosPorVencer.map((promo) => (
+                        <div
+                          key={promo.id}
+                          className="p-3 bg-red-50 rounded-lg border border-red-100 flex justify-between items-start"
+                        >
                           <div>
-                            <div className="font-bold text-gray-900">{promo.medioCobro} <span className="text-sm font-normal text-gray-500">({promo.banco})</span></div>
-                            <div className="text-sm text-gray-600 mt-1">{promo.porcentaje_descuento_cliente}% OFF - {promo.cuotas} cuotas</div>
+                            <div className="font-bold text-gray-900">
+                              {promo.medioCobro}{" "}
+                              <span className="text-sm font-normal text-gray-500">
+                                ({promo.banco})
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-600 mt-1">
+                              {promo.porcentaje_descuento_cliente}% OFF -{" "}
+                              {promo.cuotas} cuotas
+                            </div>
                           </div>
                           <div className="text-right">
                             <span className="inline-block px-2 py-1 bg-red-200 text-red-800 text-xs font-bold rounded">
@@ -2173,7 +2784,11 @@
                 {/* Promos Vencidas */}
                 <div className="md:col-span-2 mt-4">
                   <h3 className="text-lg font-bold text-gray-500 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
-                    <LucideIcon name="Archive" size={20} className="text-gray-400" />
+                    <LucideIcon
+                      name="Archive"
+                      size={20}
+                      className="text-gray-400"
+                    />
                     Promociones vencidas (últimos 7 días)
                   </h3>
 
@@ -2183,11 +2798,22 @@
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {promosVencidas.map(promo => (
-                        <div key={promo.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-start opacity-75">
+                      {promosVencidas.map((promo) => (
+                        <div
+                          key={promo.id}
+                          className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex justify-between items-start opacity-75"
+                        >
                           <div>
-                            <div className="font-bold text-gray-700 line-through">{promo.medioCobro} <span className="text-sm font-normal text-gray-500">({promo.banco})</span></div>
-                            <div className="text-sm text-gray-500 mt-1">{promo.porcentaje_descuento_cliente}% OFF - {promo.cuotas} cuotas</div>
+                            <div className="font-bold text-gray-700 line-through">
+                              {promo.medioCobro}{" "}
+                              <span className="text-sm font-normal text-gray-500">
+                                ({promo.banco})
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-500 mt-1">
+                              {promo.porcentaje_descuento_cliente}% OFF -{" "}
+                              {promo.cuotas} cuotas
+                            </div>
                           </div>
                           <div className="text-right">
                             <span className="inline-block px-2 py-1 bg-gray-200 text-gray-600 text-xs font-bold rounded">
@@ -2200,7 +2826,6 @@
                   )}
                 </div>
               </div>
-
             </div>
           </div>
         );
@@ -2212,7 +2837,7 @@
         const [expandedCardId, setExpandedCardId] = useState(null);
 
         const filteredMethods = useMemo(() => {
-          return methods.filter(m => {
+          return methods.filter((m) => {
             if (onlyPromos && !m.esPromocion) return false;
 
             if (searchTerm) {
@@ -2228,14 +2853,14 @@
         }, [methods, searchTerm, onlyPromos]);
 
         const handleNotesChange = (id, notes) => {
-          const method = methods.find(m => m.id === id);
+          const method = methods.find((m) => m.id === id);
           if (method) {
-             onEdit({ ...method, marketingNotes: notes });
+            onEdit({ ...method, marketingNotes: notes });
           }
         };
 
         const handleImageUpload = (id, e) => {
-          const method = methods.find(m => m.id === id);
+          const method = methods.find((m) => m.id === id);
           if (!method) return;
 
           const files = e.target.files;
@@ -2243,17 +2868,20 @@
 
           const reader = new FileReader();
           reader.onload = (event) => {
-             const newImages = [...(method.marketingImages || []), event.target.result];
-             onEdit({ ...method, marketingImages: newImages });
+            const newImages = [
+              ...(method.marketingImages || []),
+              event.target.result,
+            ];
+            onEdit({ ...method, marketingImages: newImages });
           };
           reader.readAsDataURL(files[0]);
         };
 
         const handleDeleteImage = (methodId, imageIndex) => {
-          const method = methods.find(m => m.id === methodId);
+          const method = methods.find((m) => m.id === methodId);
           if (!method) return;
 
-          if(confirm("¿Eliminar este flyer/imagen?")) {
+          if (confirm("¿Eliminar este flyer/imagen?")) {
             const newImages = [...method.marketingImages];
             newImages.splice(imageIndex, 1);
             onEdit({ ...method, marketingImages: newImages });
@@ -2272,7 +2900,9 @@
                 </h2>
               </div>
               <p className="text-gray-600 mb-6">
-                Revisá los medios de cobro disponibles, anotá ideas, planificá campañas y guardá flyers asociados a cada promoción. Esta información es privada para el equipo de marketing.
+                Revisá los medios de cobro disponibles, anotá ideas, planificá
+                campañas y guardá flyers asociados a cada promoción. Esta
+                información es privada para el equipo de marketing.
               </p>
 
               <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -2299,52 +2929,103 @@
                         onChange={(e) => setOnlyPromos(e.target.checked)}
                         className="w-4 h-4 text-pink-600 rounded border-pink-300 focus:ring-pink-500"
                       />
-                      <span className="text-sm font-medium text-gray-700">Solo Promociones Destacadas</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        Solo Promociones Destacadas
+                      </span>
                     </label>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-4">
-                {filteredMethods.map(method => {
+                {filteredMethods.map((method) => {
                   const isExpanded = expandedCardId === method.id;
                   return (
-                    <div key={method.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                    <div
+                      key={method.id}
+                      className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm"
+                    >
                       <div
-                        className={`p-4 cursor-pointer flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors ${isExpanded ? 'bg-pink-50/30' : 'hover:bg-gray-50'}`}
-                        onClick={() => setExpandedCardId(isExpanded ? null : method.id)}
+                        className={`p-4 cursor-pointer flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors ${isExpanded ? "bg-pink-50/30" : "hover:bg-gray-50"}`}
+                        onClick={() =>
+                          setExpandedCardId(isExpanded ? null : method.id)
+                        }
                       >
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-bold text-lg text-gray-900">{method.medioCobro}</span>
-                            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">{method.medioPago}</span>
-                            {method.esPromocion && <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">Promo</span>}
-                          </div>
-                          <div className="text-sm font-medium text-gray-600 flex items-center gap-3">
-                            <span className="flex items-center gap-1"><LucideIcon name="Landmark" size={14} /> {method.banco}</span>
-                            <span className="flex items-center gap-1"><LucideIcon name="CreditCard" size={14} /> {method.cuotas} cuotas</span>
-                            {method.esPromocion && method.porcentaje_descuento_cliente > 0 && (
-                              <span className="text-green-600 font-semibold flex items-center gap-1">
-                                <LucideIcon name="Tag" size={14} /> {method.porcentaje_descuento_cliente}% OFF
+                            <span className="font-bold text-lg text-gray-900">
+                              {method.medioCobro}
+                            </span>
+                            <span className="text-sm text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">
+                              {method.medioPago}
+                            </span>
+                            {method.esPromocion && (
+                              <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full border border-blue-200">
+                                Promo
                               </span>
                             )}
                           </div>
-                          {method.esPromocion && (method.fecha_inicio || method.fecha_fin) && (
-                            <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
-                              <LucideIcon name="Calendar" size={12} />
-                              {method.fecha_inicio ? new Date(method.fecha_inicio).toLocaleDateString() : 'Siempre'} - {method.fecha_fin ? new Date(method.fecha_fin).toLocaleDateString() : 'Sin fin'}
-                              {method.tope_reintegro > 0 && (
-                                <span className="ml-2 border-l border-gray-300 pl-2">
-                                  Tope: ${method.tope_reintegro} ({method.tipo_tope === "por_transaccion" ? "x Transacción" : "x Mes"})
+                          <div className="text-sm font-medium text-gray-600 flex items-center gap-3">
+                            <span className="flex items-center gap-1">
+                              <LucideIcon name="Landmark" size={14} />{" "}
+                              {method.banco}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <LucideIcon name="CreditCard" size={14} />{" "}
+                              {method.cuotas} cuotas
+                            </span>
+                            {method.esPromocion &&
+                              method.porcentaje_descuento_cliente > 0 && (
+                                <span className="text-green-600 font-semibold flex items-center gap-1">
+                                  <LucideIcon name="Tag" size={14} />{" "}
+                                  {method.porcentaje_descuento_cliente}% OFF
                                 </span>
                               )}
-                            </div>
-                          )}
+                          </div>
+                          {method.esPromocion &&
+                            (method.fecha_inicio || method.fecha_fin) && (
+                              <div className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                                <LucideIcon name="Calendar" size={12} />
+                                {method.fecha_inicio
+                                  ? new Date(
+                                      method.fecha_inicio,
+                                    ).toLocaleDateString()
+                                  : "Siempre"}{" "}
+                                -{" "}
+                                {method.fecha_fin
+                                  ? new Date(
+                                      method.fecha_fin,
+                                    ).toLocaleDateString()
+                                  : "Sin fin"}
+                                {method.tope_reintegro > 0 && (
+                                  <span className="ml-2 border-l border-gray-300 pl-2">
+                                    Tope: ${method.tope_reintegro} (
+                                    {method.tipo_tope === "por_transaccion"
+                                      ? "x Transacción"
+                                      : "x Mes"}
+                                    )
+                                  </span>
+                                )}
+                              </div>
+                            )}
                         </div>
                         <div className="flex items-center gap-4">
-                           {method.marketingNotes && <span className="text-xs font-semibold text-pink-600 bg-pink-100 px-2 py-1 rounded flex items-center gap-1"><LucideIcon name="FileText" size={12}/> Hay notas</span>}
-                           {(method.marketingImages || []).length > 0 && <span className="text-xs font-semibold text-pink-600 bg-pink-100 px-2 py-1 rounded flex items-center gap-1"><LucideIcon name="Image" size={12}/> {(method.marketingImages || []).length} Flyer(s)</span>}
-                           <LucideIcon name={isExpanded ? "ChevronUp" : "ChevronDown"} size={20} className="text-gray-400" />
+                          {method.marketingNotes && (
+                            <span className="text-xs font-semibold text-pink-600 bg-pink-100 px-2 py-1 rounded flex items-center gap-1">
+                              <LucideIcon name="FileText" size={12} /> Hay notas
+                            </span>
+                          )}
+                          {(method.marketingImages || []).length > 0 && (
+                            <span className="text-xs font-semibold text-pink-600 bg-pink-100 px-2 py-1 rounded flex items-center gap-1">
+                              <LucideIcon name="Image" size={12} />{" "}
+                              {(method.marketingImages || []).length} Flyer(s)
+                            </span>
+                          )}
+                          <LucideIcon
+                            name={isExpanded ? "ChevronUp" : "ChevronDown"}
+                            size={20}
+                            className="text-gray-400"
+                          />
                         </div>
                       </div>
 
@@ -2352,73 +3033,134 @@
                         <div className="p-4 bg-gray-50 border-t border-gray-200 animate-fadeIn">
                           {method.esPromocion && (
                             <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-3 rounded border border-gray-200 shadow-sm text-sm text-gray-700">
-                                <div>
-                                   <strong className="block text-gray-900 mb-1">Días de vigencia:</strong>
-                                   {(method.dias_semana || []).length === 7 ? "Todos los días" : (method.dias_semana || []).map(d => ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"][d]).join(", ")}
+                              <div>
+                                <strong className="block text-gray-900 mb-1">
+                                  Días de vigencia:
+                                </strong>
+                                {(method.dias_semana || []).length === 7
+                                  ? "Todos los días"
+                                  : (method.dias_semana || [])
+                                      .map(
+                                        (d) =>
+                                          [
+                                            "Dom",
+                                            "Lun",
+                                            "Mar",
+                                            "Mié",
+                                            "Jue",
+                                            "Vie",
+                                            "Sáb",
+                                          ][d],
+                                      )
+                                      .join(", ")}
+                              </div>
+                              <div>
+                                <strong className="block text-gray-900 mb-1">
+                                  Comisiones:
+                                </strong>
+                                Base: {method.comisionBase}% | Financiera:{" "}
+                                {method.comisionFinanc}%
+                              </div>
+                              {method.instrucciones && (
+                                <div className="md:col-span-2">
+                                  <strong className="block text-gray-900 mb-1">
+                                    Instrucciones:
+                                  </strong>
+                                  <p className="text-gray-600 bg-gray-50 p-2 rounded">
+                                    {method.instrucciones}
+                                  </p>
                                 </div>
-                                <div>
-                                   <strong className="block text-gray-900 mb-1">Comisiones:</strong>
-                                   Base: {method.comisionBase}% | Financiera: {method.comisionFinanc}%
-                                </div>
-                                {method.instrucciones && (
-                                  <div className="md:col-span-2">
-                                     <strong className="block text-gray-900 mb-1">Instrucciones:</strong>
-                                     <p className="text-gray-600 bg-gray-50 p-2 rounded">{method.instrucciones}</p>
-                                  </div>
-                                )}
+                              )}
                             </div>
                           )}
                           <div className="mb-4">
                             <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                              <LucideIcon name="PenTool" size={16} className="text-pink-500"/>
+                              <LucideIcon
+                                name="PenTool"
+                                size={16}
+                                className="text-pink-500"
+                              />
                               Notas de Campaña / Planificación
                             </label>
                             <textarea
                               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 outline-none text-sm min-h-[100px]"
                               placeholder="Ej: Se publicitó en Instagram el 12/03. Renovar pauta si funciona bien..."
                               value={method.marketingNotes || ""}
-                              onChange={(e) => handleNotesChange(method.id, e.target.value)}
+                              onChange={(e) =>
+                                handleNotesChange(method.id, e.target.value)
+                              }
                             />
-                            <p className="text-xs text-gray-400 mt-1">Se guarda automáticamente.</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Se guarda automáticamente.
+                            </p>
                           </div>
 
                           <div>
                             <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                              <LucideIcon name="ImagePlus" size={16} className="text-pink-500"/>
+                              <LucideIcon
+                                name="ImagePlus"
+                                size={16}
+                                className="text-pink-500"
+                              />
                               Flyers y Material Gráfico
                             </label>
 
                             <div className="flex flex-wrap gap-4 mb-3">
-                              {(method.marketingImages || []).map((imgSrc, idx) => (
-                                <div key={idx} className="relative group w-32 h-32 border border-gray-200 rounded bg-white shadow-sm flex items-center justify-center overflow-hidden">
-                                  <img src={imgSrc} alt="Flyer" className="max-w-full max-h-full object-contain" />
-                                  <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button
-                                      onClick={() => handleDownloadImage(imgSrc, method.id, idx)}
-                                      className="bg-blue-500 text-white p-1 rounded-full shadow-sm hover:bg-blue-600"
-                                      title="Descargar"
-                                    >
-                                      <LucideIcon name="Download" size={12} />
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteImage(method.id, idx)}
-                                      className="bg-red-500 text-white p-1 rounded-full shadow-sm hover:bg-red-600"
-                                      title="Eliminar"
-                                    >
-                                      <LucideIcon name="Trash2" size={12} />
-                                    </button>
+                              {(method.marketingImages || []).map(
+                                (imgSrc, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="relative group w-32 h-32 border border-gray-200 rounded bg-white shadow-sm flex items-center justify-center overflow-hidden"
+                                  >
+                                    <img
+                                      src={imgSrc}
+                                      alt="Flyer"
+                                      className="max-w-full max-h-full object-contain"
+                                    />
+                                    <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <button
+                                        onClick={() =>
+                                          handleDownloadImage(
+                                            imgSrc,
+                                            method.id,
+                                            idx,
+                                          )
+                                        }
+                                        className="bg-blue-500 text-white p-1 rounded-full shadow-sm hover:bg-blue-600"
+                                        title="Descargar"
+                                      >
+                                        <LucideIcon name="Download" size={12} />
+                                      </button>
+                                      <button
+                                        onClick={() =>
+                                          handleDeleteImage(method.id, idx)
+                                        }
+                                        className="bg-red-500 text-white p-1 rounded-full shadow-sm hover:bg-red-600"
+                                        title="Eliminar"
+                                      >
+                                        <LucideIcon name="Trash2" size={12} />
+                                      </button>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
+                                ),
+                              )}
 
                               <label className="w-32 h-32 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center text-gray-400 hover:text-pink-500 hover:border-pink-500 hover:bg-pink-50 transition-colors cursor-pointer">
-                                <LucideIcon name="UploadCloud" size={24} className="mb-1" />
-                                <span className="text-xs font-medium">Subir imagen</span>
+                                <LucideIcon
+                                  name="UploadCloud"
+                                  size={24}
+                                  className="mb-1"
+                                />
+                                <span className="text-xs font-medium">
+                                  Subir imagen
+                                </span>
                                 <input
                                   type="file"
                                   accept="image/*"
                                   className="hidden"
-                                  onChange={(e) => handleImageUpload(method.id, e)}
+                                  onChange={(e) =>
+                                    handleImageUpload(method.id, e)
+                                  }
                                 />
                               </label>
                             </div>
@@ -2429,9 +3171,9 @@
                   );
                 })}
                 {filteredMethods.length === 0 && (
-                   <div className="text-center py-10 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
-                      No se encontraron métodos de pago para marketing.
-                   </div>
+                  <div className="text-center py-10 text-gray-500 border-2 border-dashed border-gray-200 rounded-lg">
+                    No se encontraron métodos de pago para marketing.
+                  </div>
                 )}
               </div>
             </div>
