@@ -118,7 +118,7 @@
         useEffect(() => {
           if (window.lucide && window.lucide.createIcons) {
             window.lucide.createIcons({
-              root: iconRef.current ? iconRef.current.parentNode : document,
+              root: iconRef.current?.parentElement || document,
               nameAttr: "data-lucide",
               attrs: {
                 class: className,
