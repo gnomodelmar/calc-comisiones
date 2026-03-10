@@ -4,10 +4,8 @@ const path = require('path');
 (async () => {
     const browser = await chromium.launch();
     const page = await browser.newPage();
-    const filePath = 'file://' + path.resolve('index.html');
-
-    // Seed localStorage with a couple of active promos
-    await page.addInitScript(() => {
+    // Mock network request to return active promos
+    await page.route('**/api/methods', async route => {
         const methods = [
             {
                 id: 1,
@@ -52,10 +50,14 @@ const path = require('path');
                 esPromocion: true
             }
         ];
-        localStorage.setItem('paymentMethods', JSON.stringify(methods));
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify(methods)
+        });
     });
 
-    await page.goto(filePath);
+    await page.goto('http://localhost:3000');
     await page.waitForTimeout(2000);
 
     // Login as Admin to access everything

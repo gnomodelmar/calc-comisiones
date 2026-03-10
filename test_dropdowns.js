@@ -5,7 +5,7 @@ const path = require('path');
     const browser = await chromium.launch();
     const page = await browser.newPage();
     const filePath = 'file://' + path.resolve('index.html');
-    await page.goto(filePath);
+    await page.goto('http://localhost:3000');
     await page.waitForTimeout(2000);
 
     // Login as Admin to access everything

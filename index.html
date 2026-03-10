@@ -2847,17 +2847,20 @@
       const App = () => {
         const [role, setRole] = useState(() => localStorage.getItem("appRole") || null);
         const [view, setView] = useState("calculator");
-        const [methods, setMethods] = useState(() => {
-          const saved = localStorage.getItem("paymentMethods");
-          if (!saved) return initialPaymentMethods;
+        const [methods, setMethods] = useState([]);
+        const [loading, setLoading] = useState(true);
 
+        // Fetch data from server
+        const fetchMethods = async () => {
           try {
-            const parsed = JSON.parse(saved);
+            const response = await fetch('/api/methods');
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+
             // Migrate old data to new schema
-            return parsed.map((m) => {
+            const parsed = data.map((m) => {
               // Handle old data with single incluyeIVA
-              const oldIncluyeIVA =
-                m.incluyeIVA !== undefined ? m.incluyeIVA : false;
+              const oldIncluyeIVA = m.incluyeIVA !== undefined ? m.incluyeIVA : false;
               const incluyeIVABase =
                 m.incluyeIVABase !== undefined
                   ? m.incluyeIVABase
@@ -2866,8 +2869,6 @@
                 m.incluyeIVAFinanc !== undefined
                   ? m.incluyeIVAFinanc
                   : oldIncluyeIVA;
-
-              // Remove old property to avoid confusion if needed, or just let it be
 
               return {
                 ...m,
@@ -2889,38 +2890,63 @@
                 marketingImages: m.marketingImages || [],
               };
             });
-          } catch (e) {
-            console.error("Error parsing saved methods", e);
-            return initialPaymentMethods;
-          }
-        });
 
-        // 7-day auto purge for deleted items
-        useEffect(() => {
-          const now = new Date();
-          const msPerDay = 1000 * 60 * 60 * 24;
-          let changed = false;
+            // 7-day auto purge for deleted items
+            const now = new Date();
+            const msPerDay = 1000 * 60 * 60 * 24;
+            let changed = false;
 
-          const purgedMethods = methods.filter((m) => {
-            if (m.deletedAt) {
-              const deletedDate = new Date(m.deletedAt);
-              const diffDays = Math.floor((now - deletedDate) / msPerDay);
-              if (diffDays >= 7) {
-                changed = true;
-                return false; // Hard delete
+            const purgedMethods = parsed.filter((m) => {
+              if (m.deletedAt) {
+                const deletedDate = new Date(m.deletedAt);
+                const diffDays = Math.floor((now - deletedDate) / msPerDay);
+                if (diffDays >= 7) {
+                  changed = true;
+                  return false; // Hard delete
+                }
               }
-            }
-            return true;
-          });
+              return true;
+            });
 
-          if (changed) {
-            setMethods(purgedMethods);
+            if (changed) {
+              await saveMethods(purgedMethods);
+              setMethods(purgedMethods);
+            } else {
+              setMethods(parsed);
+            }
+          } catch (error) {
+            console.error('Error fetching methods:', error);
+            // Fallback to initial data if server is down
+            setMethods(initialPaymentMethods);
+          } finally {
+            setLoading(false);
           }
-        }, []); // Run once on mount
+        };
 
         useEffect(() => {
-          localStorage.setItem("paymentMethods", JSON.stringify(methods));
-        }, [methods]);
+          fetchMethods();
+        }, []);
+
+        const saveMethods = async (newMethods) => {
+          try {
+            const response = await fetch('/api/methods', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(newMethods),
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+          } catch (error) {
+            console.error('Error saving methods:', error);
+          }
+        };
+
+        // Custom setMethods wrapper to also save to server
+        const updateMethods = (newMethods) => {
+          setMethods(newMethods);
+          saveMethods(newMethods);
+        };
 
         const activeMethods = useMemo(
           () => methods.filter((m) => !m.deletedAt),
@@ -2932,11 +2958,11 @@
         );
 
         const addMethod = (method) => {
-          setMethods([...methods, method]);
+          updateMethods([...methods, method]);
         };
 
         const editMethod = (updatedMethod) => {
-          setMethods(
+          updateMethods(
             methods.map((m) => (m.id === updatedMethod.id ? updatedMethod : m)),
           );
         };
@@ -2947,7 +2973,7 @@
               "¿Estás seguro de enviar este medio de cobro a la papelera por 7 días?",
             )
           ) {
-            setMethods(
+            updateMethods(
               methods.map((m) =>
                 m.id === id ? { ...m, deletedAt: new Date().toISOString() } : m,
               ),
@@ -2956,7 +2982,7 @@
         };
 
         const restoreMethod = (id) => {
-          setMethods(
+          updateMethods(
             methods.map((m) => (m.id === id ? { ...m, deletedAt: null } : m)),
           );
         };
@@ -2967,7 +2993,7 @@
               "¿Estás seguro de eliminar PERMANENTEMENTE este medio de cobro? Esta acción no se puede deshacer.",
             )
           ) {
-            setMethods(methods.filter((m) => m.id !== id));
+            updateMethods(methods.filter((m) => m.id !== id));
           }
         };
 
@@ -2988,6 +3014,14 @@
 
         if (!role) {
           return <LoginView setRole={setRole} />;
+        }
+
+        if (loading) {
+          return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+              <div className="text-gray-500 text-lg">Cargando...</div>
+            </div>
+          );
         }
 
         return (
