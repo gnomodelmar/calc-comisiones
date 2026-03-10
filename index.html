@@ -307,17 +307,19 @@
           </div>
 
           <div className="flex items-center gap-3 ml-4 pl-4 border-l border-gray-200">
-             <div className="hidden sm:flex flex-col text-right">
-               <span className="text-xs text-gray-500">Sesión</span>
-               <span className="text-sm font-bold text-gray-800 capitalize">{role === 'seller' ? 'Vendedor' : role}</span>
-             </div>
-             <button
-               onClick={onLogout}
-               title="Cerrar sesión"
-               className="p-2 text-gray-500 hover:text-red-600 bg-gray-50 hover:bg-red-50 rounded-full transition-colors flex items-center justify-center"
-             >
-               <LucideIcon name="LogOut" size={18} />
-             </button>
+            <div className="hidden sm:flex flex-col text-right">
+              <span className="text-xs text-gray-500">Sesión</span>
+              <span className="text-sm font-bold text-gray-800 capitalize">
+                {role === "seller" ? "Vendedor" : role}
+              </span>
+            </div>
+            <button
+              onClick={onLogout}
+              title="Cerrar sesión"
+              className="p-2 text-gray-500 hover:text-red-600 bg-gray-50 hover:bg-red-50 rounded-full transition-colors flex items-center justify-center"
+            >
+              <LucideIcon name="LogOut" size={18} />
+            </button>
           </div>
         </header>
       );
@@ -2442,50 +2444,200 @@
 
         const sections = [
           {
+            id: "introduccion",
+            title: "Introducción a la Plataforma",
+            icon: "Info",
+            content: (
+              <div className="space-y-4 text-gray-700">
+                <p>
+                  ¡Bienvenido al sistema integral de gestión de cobros y
+                  promociones! Esta herramienta está diseñada para ayudarte a
+                  maximizar tus ganancias, calcular precios precisos, gestionar
+                  promociones bancarias y organizar tu estrategia de marketing,
+                  todo desde un solo lugar.
+                </p>
+                <p>
+                  La aplicación se divide en 5 secciones principales accesibles
+                  desde el menú superior:
+                </p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    <strong>Calculadora:</strong> Tu herramienta principal para
+                    el día a día. Calcula exactamente cuánto cobrar para recibir
+                    el monto neto deseado.
+                  </li>
+                  <li>
+                    <strong>Promociones:</strong> Un catálogo visual (lista y
+                    calendario) de todos los beneficios bancarios activos y
+                    próximos.
+                  </li>
+                  <li>
+                    <strong>Novedades:</strong> Un panel de alertas automáticas
+                    sobre qué promociones inician o vencen en los próximos 7
+                    días.
+                  </li>
+                  <li>
+                    <strong>Marketing:</strong> El espacio para organizar
+                    flyers, notas y material gráfico de tus promos.
+                  </li>
+                  <li>
+                    <strong>Configuración:</strong> El "motor" de la app. Aquí
+                    cargas, editas y borras todos los medios de cobro y
+                    promociones.
+                  </li>
+                </ul>
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded mt-4">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Tip de Uso:</strong> Dependiendo de tu rol en la
+                    empresa (Vendedor, Marketing, Admin), puede que no veas
+                    algunas de estas pestañas.
+                  </p>
+                </div>
+              </div>
+            ),
+          },
+          {
             id: "calculadora",
-            title: "Calculadora",
+            title: "Calculadora de Cobros (¡Súper Detallada!)",
             icon: "Calculator",
             content: (
               <div className="space-y-4 text-gray-700">
                 <p>
-                  La <strong>Calculadora Inversa de Cobros</strong> te permite
-                  determinar a qué precio debes vender un producto para que,
-                  después de descontar las comisiones del medio de cobro elegido
-                  y la inflación, te quede el{" "}
-                  <strong>Precio Contado (Monto Neto)</strong> que deseas.
+                  La <strong>Calculadora Inversa de Cobros</strong> es la
+                  herramienta más potente de la app. A diferencia de una
+                  calculadora normal donde restas porcentajes, esta hace el{" "}
+                  <em>cálculo inverso</em>: te dice a qué{" "}
+                  <strong>Precio de Lista</strong> debes vender para que, al
+                  restarle comisiones e impuestos, te quede exactamente la plata
+                  que quieres en el bolsillo (<strong>Monto Neto</strong>).
                 </p>
                 <img
                   src="calculator_view_updated.png"
                   alt="Vista de la Calculadora"
                   className="w-full border rounded-lg shadow-sm"
                 />
+
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  1. Ingreso de Datos Básicos
+                </h4>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>
-                    <strong>Precio de Lista / Venta:</strong> Ingresa el precio
-                    que vas a mostrar al cliente.
+                    <strong>Precio de Lista / Venta ($):</strong> Es el precio
+                    "de vidriera". El número inicial sobre el cual se aplicarán
+                    recargos o descuentos.
                   </li>
                   <li>
-                    <strong>% Inflado (Descuento efvo):</strong> Si el precio de
-                    lista está inflado para ofrecer un descuento por pago en
-                    efectivo, ingresa ese porcentaje aquí. El sistema calculará
-                    el <strong>Monto Neto</strong> base automáticamente.
+                    <strong>% Inflado (Descuento efvo):</strong> Muchos
+                    comercios inflan el precio de lista para poder ofrecer un
+                    "Descuento en Efectivo".
+                    <em>
+                      {" "}
+                      Ejemplo: Si tu producto sale $10.000 (Monto Neto) y le
+                      recargas un 20% para la vidriera, tu Precio de Lista será
+                      $12.500. Si aquí pones '20', la calculadora entenderá que
+                      tu Monto Neto deseado es $10.000 ($12.500 - 20%).
+                    </em>
                   </li>
                   <li>
-                    <strong>Solo Hoy / Flexible (7 días):</strong> Selecciona si
-                    quieres ver solo las promociones válidas el día de hoy, o
-                    aquellas que estarán vigentes en los próximos 7 días.
-                  </li>
-                  <li>
-                    <strong>Filtros rápidos:</strong> Usa "Solo promos activas
-                    hoy" o "Solo cuotas" para acotar los resultados.
-                  </li>
-                  <li>
-                    <strong>Resultados:</strong> Te mostrará las opciones de
-                    cobro organizadas de la más barata a la más cara. La mejor
-                    opción resaltará en verde. Cada tarjeta puede expandirse
-                    para "Ver más opciones" del mismo tipo.
+                    <strong>Monto Neto Calculado:</strong> Aparecerá
+                    automáticamente. Este es el dinero real que buscas recibir
+                    en tu cuenta después de pagarle a la tarjeta/banco.
                   </li>
                 </ul>
+
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  2. Filtros y Búsqueda
+                </h4>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    <strong>Medio de Cobro / Medio de Pago / Banco:</strong>{" "}
+                    Puedes escribir o seleccionar opciones para filtrar los
+                    resultados. Si dejas todo vacío, la calculadora te mostrará{" "}
+                    <em>todas</em> las opciones posibles para ese monto.
+                  </li>
+                  <li>
+                    <strong>Solo Hoy vs. Flexible (7 días):</strong>
+                    <br />- <em>Solo Hoy:</em> Ideal para ventas en el momento.
+                    Solo muestra opciones vigentes el día de hoy.
+                    <br />- <em>Flexible:</em> Muestra todas las promos que
+                    estén activas hoy O en los próximos 7 días. Si un cliente te
+                    pregunta "¿Qué promos tienes el sábado?", usas este botón.
+                  </li>
+                  <li>
+                    <strong>Cuotas (Todas/1/3/6...):</strong> Te permite ver
+                    solo los cálculos para una cantidad específica de cuotas.
+                  </li>
+                  <li>
+                    <strong>Solo promos activas hoy:</strong> Checkbox rápido
+                    para ocultar medios de cobro tradicionales y dejar solo las
+                    "Promociones Destacadas".
+                  </li>
+                  <li>
+                    <strong>Solo cuotas:</strong> Oculta las opciones de pago en
+                    1 pago (débito/crédito 1 cuota) y billeteras virtuales de
+                    pago único.
+                  </li>
+                </ul>
+
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  3. Entendiendo los Resultados (Tarjetas)
+                </h4>
+                <p>
+                  Las tarjetas de resultados se ordenan automáticamente de{" "}
+                  <strong>la más barata a la más cara</strong> para el cliente
+                  final. La matemática detrás funciona así:
+                </p>
+                <div className="bg-gray-100 p-4 rounded-lg text-sm font-mono my-2 overflow-x-auto">
+                  1. Comisión Efectiva = (Comisión Base + IVA si aplica) +
+                  (Comisión Financiera + IVA si aplica)
+                  <br />
+                  2. Monto Final a Cobrar al Cliente = Monto Neto / ( 1 -
+                  (Comisión Efectiva / 100) )<br />
+                  3. Valor de cada Cuota = Monto Final / Cantidad de Cuotas
+                </div>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    <span className="inline-block w-4 h-4 bg-green-100 border border-green-500 rounded-full mr-2"></span>
+                    <strong>Color Verde:</strong> Es la opción absolutamente más
+                    barata de todas las mostradas.
+                  </li>
+                  <li>
+                    <span className="inline-block w-4 h-4 bg-blue-50 border border-blue-200 rounded-full mr-2"></span>
+                    <strong>Color Azul Claro:</strong> Indica que esta opción es
+                    una <strong>Promoción Destacada</strong> (ej. MODO, Cuenta
+                    DNI).
+                  </li>
+                  <li>
+                    <span className="inline-block w-4 h-4 bg-orange-50 border border-orange-200 rounded-full mr-2"></span>
+                    <strong>Color Naranja:</strong> Se usa para pagos en Cuotas
+                    (que no son promoción destacada).
+                  </li>
+                  <li>
+                    <span className="inline-block w-4 h-4 bg-gray-50 border border-gray-200 rounded-full mr-2"></span>
+                    <strong>Color Gris:</strong> Opciones estándar de 1 pago
+                    (ej. Débito común).
+                  </li>
+                </ul>
+                <p className="mt-2">
+                  <strong>Agrupación Inteligente:</strong> Si tienes cargadas 5
+                  promociones diferentes de MODO (con distintos bancos), la
+                  calculadora te mostrará en la tarjeta principal solo la opción
+                  de MODO <strong>más barata</strong>. Las otras 4 opciones
+                  quedarán ocultas bajo el botón "Ver N opciones más". Esto
+                  evita que la pantalla se llene de tarjetas repetidas.
+                </p>
+
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  4. Botón "Copiar Opciones"
+                </h4>
+                <p>
+                  Ubicado arriba a la derecha en los resultados. Hace clic aquí
+                  para generar un texto perfectamente formateado (ideal para
+                  WhatsApp) con todas las opciones de pago calculadas para el
+                  monto ingresado. Separará las opciones "Normales" de las
+                  "Promociones bancarias" y detallará topes de reintegro y
+                  vigencias.
+                </p>
               </div>
             ),
           },
@@ -2496,37 +2648,69 @@
             content: (
               <div className="space-y-4 text-gray-700">
                 <p>
-                  La sección de <strong>Promociones</strong> te ayuda a
-                  consultar rápidamente qué promociones bancarias o de
-                  billeteras virtuales están activas hoy o en el futuro cercano.
+                  La sección de <strong>Promociones</strong> es tu catálogo
+                  visual para saber qué acuerdos bancarios tienes vigentes. Se
+                  alimenta de los medios de cobro que en Configuración marcaste
+                  como "Es una promoción destacada".
                 </p>
                 <img
                   src="promotions_tab.png"
                   alt="Pestaña de Promociones"
                   className="w-full border rounded-lg shadow-sm"
                 />
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  Vista Lista
+                </h4>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>
-                    <strong>Vista Lista / Calendario:</strong> Alterna entre ver
-                    las promos en una lista agrupada por banco o en un
-                    calendario mensual.
+                    Las promociones se agrupan automáticamente por{" "}
+                    <strong>Banco</strong>.
                   </li>
                   <li>
-                    <strong>Buscador y Filtros:</strong> Puedes buscar por
-                    banco, billetera o medio de pago, y filtrar entre promos
-                    "Activas" o "Próximas".
+                    Usa el buscador para filtrar rápidamente (ej. escribe
+                    "Galicia" o "MODO").
                   </li>
                   <li>
-                    <strong>Detalles de Promo:</strong> Al hacer clic en una
-                    promoción de la lista, se despliegan detalles extra como la
-                    comisión del comercio, plazo de acreditación y cualquier
-                    instrucción especial.
+                    Los botones "Activas" y "Próximas" te permiten limpiar la
+                    vista.
                   </li>
                   <li>
-                    <strong>Calendario Interactivo:</strong> En la vista de
-                    calendario, pasa el ratón sobre una promoción para ver un
-                    resumen rápido (tooltip), o haz clic en ella para ir a sus
-                    detalles en la lista.
+                    Haz clic en cualquier tarjeta para{" "}
+                    <strong>expandirla</strong> y ver los "Detalles para el
+                    Comercio": Cuánto te cobran de comisión, cuándo se te
+                    acredita el dinero, y las instrucciones de cobro (ej.
+                    "Cobrar por QR de la terminal").
+                  </li>
+                  <li>
+                    Verás etiquetas claras si la promo tiene{" "}
+                    <strong>Tope de Reintegro</strong> (y si es por transacción
+                    o mensual) y el porcentaje de descuento que se le hace al
+                    cliente.
+                  </li>
+                </ul>
+
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  Vista Calendario
+                </h4>
+                <p>
+                  Activa el "Modo Calendario" usando el interruptor arriba a la
+                  derecha.
+                </p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    Muestra un mes completo. Los días que tienen promociones
+                    activas tendrán "píldoras" de colores.
+                  </li>
+                  <li>
+                    Si pasas el mouse (o mantienes el dedo en el celular) sobre
+                    una píldora, verás un recuadro (Tooltip) con el nombre de la
+                    promo y si tiene tope.
+                  </li>
+                  <li>
+                    Si haces <strong>clic</strong> en una píldora del
+                    calendario, la app volverá automáticamente a la Vista Lista,
+                    filtrará y abrirá los detalles exactos de esa promoción que
+                    tocaste.
                   </li>
                 </ul>
               </div>
@@ -2534,28 +2718,46 @@
           },
           {
             id: "novedades",
-            title: "Novedades",
+            title: "Novedades (Alertas Automáticas)",
             icon: "Bell",
             content: (
               <div className="space-y-4 text-gray-700">
                 <p>
-                  La pestaña de <strong>Novedades</strong> es tu resumen diario.
-                  Te muestra de un vistazo qué está pasando con tus promociones.
+                  La pestaña de <strong>Novedades</strong> es tu asistente
+                  virtual. Revisa constantemente las fechas de tus promociones y
+                  te avisa qué está por pasar en tu ventana de 7 días.
                 </p>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>
-                    <strong>Promociones que inician:</strong> Listado de las
-                    promociones que comenzarán a ser válidas en los próximos 7
-                    días. ¡Ideal para preparar anuncios!
+                    <span className="font-semibold text-green-700">
+                      Promociones que inician (Próximos 7 días):
+                    </span>
+                    <br />
+                    Listado de las promociones que tienen configurada una 'Fecha
+                    de Inicio' futura cercana. ¡Ideal para ir preparando posteos
+                    en redes sociales o avisar a los vendedores!
                   </li>
                   <li>
-                    <strong>Promociones por vencer:</strong> Alertas sobre las
-                    promociones que terminarán en los próximos 7 días, para que
-                    las aproveches antes de que desaparezcan.
+                    <span className="font-semibold text-yellow-700">
+                      Promociones por vencer (Próximos 7 días):
+                    </span>
+                    <br />
+                    Alertas sobre promociones cuya 'Fecha de Fin' está muy
+                    cerca. Te sirve para recordarle a los clientes "¡Últimos
+                    días de esta promo!" o para hablar con el banco y renovarla.
                   </li>
                   <li>
-                    <strong>Promociones vencidas:</strong> Un historial de las
-                    promociones que caducaron en los últimos 7 días.
+                    <span className="font-semibold text-red-700">
+                      Promociones vencidas (Últimos 7 días):
+                    </span>
+                    <br />
+                    Un historial reciente. Si un cliente te dice "El martes
+                    pasado había un descuento", puedes venir aquí a comprobarlo.{" "}
+                    <em>
+                      Nota: Si una promoción vencida va a dejar de existir para
+                      siempre, recuerda ir a Configuración y borrarla para
+                      mantener tu sistema limpio.
+                    </em>
                   </li>
                 </ul>
               </div>
@@ -2563,30 +2765,42 @@
           },
           {
             id: "marketing",
-            title: "Marketing",
+            title: "Panel de Marketing",
             icon: "Megaphone",
             content: (
               <div className="space-y-4 text-gray-700">
                 <p>
-                  El <strong>Panel de Marketing</strong> es un espacio privado
-                  para planificar y organizar la comunicación de tus medios de
-                  cobro.
+                  El <strong>Panel de Marketing</strong> es un espacio de
+                  trabajo privado (no afecta a los cálculos ni lo ven los
+                  vendedores si no tienen acceso). Su objetivo es centralizar la
+                  comunicación de las promociones.
                 </p>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>
-                    <strong>Notas privadas:</strong> Cada medio de cobro tiene
-                    un espacio para anotar ideas de campañas, recordatorios de
-                    publicación, etc. Estas notas no se ven en la calculadora.
+                    <strong>Notas Privadas:</strong> Al expandir una promoción,
+                    encontrarás un campo de texto grande. Úsalo para anotar
+                    ideas de campañas, copies para Instagram, links a carpetas
+                    de Drive, o recordatorios de quién aprobó la promoción.
+                    Estas notas se guardan automáticamente.
                   </li>
                   <li>
-                    <strong>Gestión de Flyers:</strong> Puedes subir imágenes
-                    (flyers) asociados a cada promoción. Te permite tener a mano
-                    el material gráfico para compartir por WhatsApp o redes
-                    sociales.
+                    <strong>Gestión de Flyers (Imágenes):</strong>
+                    <br />- Puedes hacer clic en el botón de imagen para subir
+                    un archivo (JPG, PNG) desde tu computadora o celular.
+                    <br />- Una vez subido, verás una pequeña vista previa del
+                    Flyer.
+                    <br />- Utiliza el botón de descarga para bajar la imagen
+                    cuando necesites mandarla por WhatsApp a un cliente o
+                    publicarla en redes.
+                    <br />- Puedes borrar la imagen en cualquier momento si
+                    queda desactualizada.
                   </li>
                   <li>
-                    <strong>Buscador:</strong> Filtra rápidamente para encontrar
-                    la promoción a la que quieres agregar material.
+                    <strong>Información Completa:</strong> En esta vista puedes
+                    ver todos los detalles técnicos de la promoción (días de
+                    vigencia, tope de reintegro) para poder diseñar tus flyers
+                    con la información correcta sin tener que ir a buscarla a
+                    otro lado.
                   </li>
                 </ul>
               </div>
@@ -2594,41 +2808,236 @@
           },
           {
             id: "configuracion",
-            title: "Configuración",
+            title: "Configuración y Carga de Datos",
             icon: "Settings",
             content: (
               <div className="space-y-4 text-gray-700">
                 <p>
-                  La <strong>Configuración</strong> es el corazón de la
-                  aplicación. Aquí es donde agregas, editas y eliminas los
-                  diferentes métodos de cobro que ofreces.
+                  La <strong>Configuración</strong> es donde se alimenta la
+                  aplicación. Aquí creas, modificas y eliminas la base de datos
+                  de tus cobros.
                 </p>
                 <img
                   src="config_view_updated.png"
                   alt="Vista de Configuración"
                   className="w-full border rounded-lg shadow-sm"
                 />
+
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  1. La Tabla Principal
+                </h4>
+                <p>
+                  Muestra todos tus medios de cobro. Las columnas más
+                  importantes son:
+                </p>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>
-                    <strong>Agregar/Editar Medio:</strong> Llena el formulario
-                    con los datos de tu método de cobro: comisiones, banco,
-                    cuotas, fechas de vigencia, etc.
+                    <strong>Vigencia (Estado):</strong> Se calcula
+                    automáticamente según las fechas ingresadas.
+                    <br />-{" "}
+                    <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
+                      Vigente
+                    </span>{" "}
+                    (Hoy está activa)
+                    <br />-{" "}
+                    <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">
+                      Próximo a vencer
+                    </span>{" "}
+                    (Vence en menos de 7 días)
+                    <br />-{" "}
+                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                      Programado
+                    </span>{" "}
+                    (Inicia en el futuro)
+                    <br />-{" "}
+                    <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">
+                      Expirado
+                    </span>{" "}
+                    (La fecha de fin ya pasó)
                   </li>
                   <li>
-                    <strong>Promoción Destacada:</strong> Si marcas "Es una
-                    promoción destacada", el método aparecerá en las pestañas de
-                    "Promociones" y "Novedades".
+                    <strong>Acciones:</strong>
+                    <br />- ✏️ Editar: Abre el formulario con los datos
+                    cargados.
+                    <br />- 🗑️ Borrar: Envía el método a la papelera.
+                    <br />- 📄 Duplicar: ¡Ahorra muchísimo tiempo! Crea una
+                    copia exacta (sin las notas/imágenes de marketing) lista
+                    para que le cambies un detalle (ej. duplicar promo de 3
+                    cuotas para hacer la de 6 cuotas).
+                  </li>
+                </ul>
+
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  2. Agregar / Editar un Medio de Cobro (El Formulario)
+                </h4>
+                <p>
+                  Hacer clic en "+ Nuevo Medio de Cobro" abre el formulario.
+                  Veamos cómo llenarlo:
+                </p>
+
+                <div className="bg-indigo-50 p-4 rounded-lg mt-2">
+                  <h5 className="font-bold mb-2">Sección 1: Identificación</h5>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    <li>
+                      <strong>Medio de Cobro:</strong> La plataforma que procesa
+                      el pago (ej. Nave, Payway, MercadoPago, MODO). Puedes
+                      elegir o escribir uno nuevo.
+                    </li>
+                    <li>
+                      <strong>Medio de Pago:</strong> Lo que usa el cliente (ej.
+                      Tarjeta de Crédito, Débito, Dinero en Cuenta).
+                    </li>
+                    <li>
+                      <strong>Banco:</strong> (Opcional) Ej. Galicia, Santander.
+                      Escribe "Todos" si aplica a cualquier banco.
+                    </li>
+                    <li>
+                      <strong>Cuotas:</strong> Un número (ej. 1, 3, 6). Usa 1
+                      para débito o pago de contado.
+                    </li>
+                  </ul>
+
+                  <h5 className="font-bold mt-4 mb-2">
+                    Sección 2: Comisiones (Lo más importante para la matemática)
+                  </h5>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    <li>
+                      <strong>Comisión Base (%):</strong> Lo que cobra la
+                      plataforma por el servicio de procesar el pago.
+                    </li>
+                    <li>
+                      <strong>Incluye IVA (Base):</strong> Si marcas esto, el
+                      sistema usa el % tal cual. Si lo dejas desmarcado, el
+                      sistema calculará un 21% extra sobre ese valor.
+                    </li>
+                    <li>
+                      <strong>Comisión Financiera (%):</strong> El costo extra
+                      por ofrecer cuotas. Si es 1 pago, suele ser 0%.
+                    </li>
+                    <li>
+                      <strong>Incluye IVA (Financiera):</strong> Igual que la
+                      base.
+                    </li>
+                  </ul>
+
+                  <h5 className="font-bold mt-4 mb-2">
+                    Sección 3: Fechas y Promociones
+                  </h5>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    <li>
+                      <strong>Días de Acreditación:</strong> Cuántos días tarda
+                      en llegarte la plata. (Informativo).
+                    </li>
+                    <li>
+                      <strong>Fecha Inicio / Fin:</strong> Limita cuándo existe
+                      esta regla.
+                    </li>
+                    <li>
+                      <strong>Días de la semana:</strong> Selecciona qué días
+                      aplica. (Ej. Miércoles y Jueves).
+                    </li>
+                    <li>
+                      <strong>★ Es una promoción destacada:</strong> Si marcas
+                      esto, se habilitan más opciones y aparecerá en la
+                      Calculadora de forma especial, en la pestaña Promociones,
+                      Novedades y Marketing.
+                      <ul className="list-disc pl-5 mt-1 text-xs text-gray-600">
+                        <li>
+                          <strong>Descuento Cliente (%):</strong> Lo que le
+                          reintegra el banco al cliente (informativo para el
+                          resumen).
+                        </li>
+                        <li>
+                          <strong>Tope de Reintegro ($):</strong> Límite de
+                          devolución (informativo).
+                        </li>
+                        <li>
+                          <strong>Tipo de Tope:</strong> Si el tope es por
+                          transacción o mensual por cuenta (informativo).
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+
+                  <h5 className="font-bold mt-4 mb-2">
+                    Sección 4: Instrucciones (Opcional)
+                  </h5>
+                  <ul className="list-disc pl-5 space-y-1 text-sm">
+                    <li>
+                      Texto libre para que el vendedor sepa cómo cobrar. (Ej.
+                      "Pasar por QR Terminal 2", "Enviar Link de pago BNA").
+                    </li>
+                  </ul>
+                </div>
+
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  3. Ejemplos Prácticos de Carga
+                </h4>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="border border-gray-300 rounded p-3 bg-white">
+                    <p className="font-bold text-sm text-indigo-700">
+                      Ejemplo A: Cobro Normal con QR de MercadoPago (Dinero en
+                      Cuenta)
+                    </p>
+                    <ul className="text-xs space-y-1 mt-2 text-gray-600">
+                      <li>Medio de Cobro: MercadoPago</li>
+                      <li>Medio de Pago: Dinero en Cuenta</li>
+                      <li>Banco: Todos</li>
+                      <li>Cuotas: 1</li>
+                      <li>Comisión Base: 0.8%</li>
+                      <li>IVA: Desmarcado (se suma 21% al 0.8)</li>
+                      <li>Comisión Financ: 0%</li>
+                      <li>Promo Destacada: NO</li>
+                    </ul>
+                  </div>
+
+                  <div className="border border-green-300 rounded p-3 bg-green-50">
+                    <p className="font-bold text-sm text-green-700">
+                      Ejemplo B: Promo Cuota Simple 3 - Banco Macro (Nave)
+                    </p>
+                    <ul className="text-xs space-y-1 mt-2 text-gray-600">
+                      <li>Medio de Cobro: Nave</li>
+                      <li>Medio de Pago: Tarjeta de Crédito</li>
+                      <li>Banco: Macro</li>
+                      <li>Cuotas: 3</li>
+                      <li>Comisión Base: 1.8%</li>
+                      <li>IVA Base: Desmarcado</li>
+                      <li>Comisión Financ: 14.5%</li>
+                      <li>IVA Financ: Desmarcado</li>
+                      <li>Promo Destacada: SÍ ★</li>
+                      <li>Días: Lunes, Martes</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  4. La Papelera (Trash)
+                </h4>
+                <p>
+                  Para evitar borrar cosas por accidente, cuando eliminas un
+                  método, va a la <strong>Papelera</strong> (botón rojo al lado
+                  del buscador en Configuración).
+                </p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    Los elementos en la papelera no aparecen en la calculadora
+                    ni en promociones.
                   </li>
                   <li>
-                    <strong>Duplicar:</strong> Utiliza el botón de "Duplicar"
-                    (ícono de dos hojas) en la tabla para copiar rápidamente un
-                    método existente y cambiarle solo algunos datos (ej.
-                    distintas cuotas para el mismo banco).
+                    Tienes un período de gracia de <strong>7 días</strong>.
                   </li>
                   <li>
-                    <strong>Papelera (7 días):</strong> Cuando eliminas un
-                    método, va a la papelera. Tienes 7 días para restaurarlo o
-                    eliminarlo permanentemente antes de que el sistema lo borre
+                    Puedes entrar a la papelera y hacer clic en{" "}
+                    <strong>Restaurar</strong> para devolverlo a la vida.
+                  </li>
+                  <li>
+                    Puedes hacer clic en{" "}
+                    <strong>Eliminar permanentemente</strong> para borrarlo al
+                    instante.
+                  </li>
+                  <li>
+                    Pasados los 7 días de borrado, el sistema lo limpiará
                     automáticamente.
                   </li>
                 </ul>
@@ -2645,13 +3054,14 @@
                   <LucideIcon name="Book" size={24} />
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800">
-                  Manual de Usuario
+                  Manual de Usuario y Guía de Uso
                 </h2>
               </div>
-              <p className="text-gray-600 mb-8">
-                Bienvenido al manual de uso. Haz clic en las diferentes
-                secciones a continuación para entender cómo funciona cada parte
-                de la aplicación.
+              <p className="text-gray-600 mb-8 text-lg">
+                Bienvenido al manual de uso integral. Aquí encontrarás
+                explicaciones detalladas, consejos matemáticos y guías paso a
+                paso para dominar cada rincón de la aplicación. Haz clic en las
+                diferentes secciones para desplegar la información.
               </p>
 
               <div className="space-y-4">
@@ -2741,9 +3151,27 @@
         };
 
         const profiles = [
-          { id: "seller", title: "Soy Vendedor", icon: "ShoppingCart", desc: "Acceso a Calculadora, Promociones y Novedades", requiresPassword: false },
-          { id: "marketing", title: "Soy de Marketing", icon: "Megaphone", desc: "Acceso a Marketing y opciones de vendedor", requiresPassword: true },
-          { id: "admin", title: "Soy Administrador", icon: "Settings", desc: "Acceso total incluyendo configuraciones", requiresPassword: true }
+          {
+            id: "seller",
+            title: "Soy Vendedor",
+            icon: "ShoppingCart",
+            desc: "Acceso a Calculadora, Promociones y Novedades",
+            requiresPassword: false,
+          },
+          {
+            id: "marketing",
+            title: "Soy de Marketing",
+            icon: "Megaphone",
+            desc: "Acceso a Marketing y opciones de vendedor",
+            requiresPassword: true,
+          },
+          {
+            id: "admin",
+            title: "Soy Administrador",
+            icon: "Settings",
+            desc: "Acceso total incluyendo configuraciones",
+            requiresPassword: true,
+          },
         ];
 
         return (
@@ -2751,16 +3179,24 @@
             <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
               <div className="p-8 text-center bg-blue-600">
                 <div className="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-inner mb-4">
-                  <LucideIcon name="Calculator" size={32} className="text-blue-600" />
+                  <LucideIcon
+                    name="Calculator"
+                    size={32}
+                    className="text-blue-600"
+                  />
                 </div>
-                <h1 className="text-2xl font-bold text-white mb-2">Calculadora de Cobros</h1>
-                <p className="text-blue-100 text-sm">Selecciona tu perfil para ingresar</p>
+                <h1 className="text-2xl font-bold text-white mb-2">
+                  Calculadora de Cobros
+                </h1>
+                <p className="text-blue-100 text-sm">
+                  Selecciona tu perfil para ingresar
+                </p>
               </div>
 
               <div className="p-6">
                 {!selectedProfile ? (
                   <div className="space-y-4">
-                    {profiles.map(p => (
+                    {profiles.map((p) => (
                       <button
                         key={p.id}
                         onClick={() => {
@@ -2784,30 +3220,51 @@
                           <p className="text-xs text-gray-500 mt-1">{p.desc}</p>
                         </div>
                         <div className="ml-auto mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <LucideIcon name="ChevronRight" size={20} className="text-blue-500" />
+                          <LucideIcon
+                            name="ChevronRight"
+                            size={20}
+                            className="text-blue-500"
+                          />
                         </div>
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <form onSubmit={handleLogin} className="space-y-6 animate-fadeIn">
+                  <form
+                    onSubmit={handleLogin}
+                    className="space-y-6 animate-fadeIn"
+                  >
                     <div>
                       <button
                         type="button"
                         onClick={() => setSelectedProfile(null)}
                         className="text-sm text-gray-500 hover:text-blue-600 flex items-center gap-1 mb-4"
                       >
-                        <LucideIcon name="ArrowLeft" size={16} /> Volver a perfiles
+                        <LucideIcon name="ArrowLeft" size={16} /> Volver a
+                        perfiles
                       </button>
 
                       <div className="flex items-center gap-3 mb-6 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                         <div className="p-2 rounded bg-white text-gray-700 shadow-sm">
-                           <LucideIcon name={profiles.find(p=>p.id===selectedProfile).icon} size={20} />
-                         </div>
-                         <div>
-                           <div className="text-xs text-gray-500">Ingresando como</div>
-                           <div className="font-bold text-gray-900">{profiles.find(p=>p.id===selectedProfile).title}</div>
-                         </div>
+                        <div className="p-2 rounded bg-white text-gray-700 shadow-sm">
+                          <LucideIcon
+                            name={
+                              profiles.find((p) => p.id === selectedProfile)
+                                .icon
+                            }
+                            size={20}
+                          />
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500">
+                            Ingresando como
+                          </div>
+                          <div className="font-bold text-gray-900">
+                            {
+                              profiles.find((p) => p.id === selectedProfile)
+                                .title
+                            }
+                          </div>
+                        </div>
                       </div>
 
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -2827,7 +3284,9 @@
                           autoFocus
                         />
                       </div>
-                      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+                      {error && (
+                        <p className="text-red-500 text-sm mt-2">{error}</p>
+                      )}
                     </div>
                     <button
                       type="submit"
@@ -2845,7 +3304,9 @@
       };
 
       const App = () => {
-        const [role, setRole] = useState(() => localStorage.getItem("appRole") || null);
+        const [role, setRole] = useState(
+          () => localStorage.getItem("appRole") || null,
+        );
         const [view, setView] = useState("calculator");
         const [methods, setMethods] = useState([]);
         const [loading, setLoading] = useState(true);
@@ -2853,14 +3314,15 @@
         // Fetch data from server
         const fetchMethods = async () => {
           try {
-            const response = await fetch('/api/methods');
-            if (!response.ok) throw new Error('Network response was not ok');
+            const response = await fetch("/api/methods");
+            if (!response.ok) throw new Error("Network response was not ok");
             const data = await response.json();
 
             // Migrate old data to new schema
             const parsed = data.map((m) => {
               // Handle old data with single incluyeIVA
-              const oldIncluyeIVA = m.incluyeIVA !== undefined ? m.incluyeIVA : false;
+              const oldIncluyeIVA =
+                m.incluyeIVA !== undefined ? m.incluyeIVA : false;
               const incluyeIVABase =
                 m.incluyeIVABase !== undefined
                   ? m.incluyeIVABase
@@ -2915,7 +3377,7 @@
               setMethods(parsed);
             }
           } catch (error) {
-            console.error('Error fetching methods:', error);
+            console.error("Error fetching methods:", error);
             // Fallback to initial data if server is down
             setMethods(initialPaymentMethods);
           } finally {
@@ -2929,16 +3391,16 @@
 
         const saveMethods = async (newMethods) => {
           try {
-            const response = await fetch('/api/methods', {
-              method: 'POST',
+            const response = await fetch("/api/methods", {
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
               },
               body: JSON.stringify(newMethods),
             });
-            if (!response.ok) throw new Error('Network response was not ok');
+            if (!response.ok) throw new Error("Network response was not ok");
           } catch (error) {
-            console.error('Error saving methods:', error);
+            console.error("Error saving methods:", error);
           }
         };
 
@@ -3026,7 +3488,12 @@
 
         return (
           <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-20">
-            <Header currentView={view} onViewChange={setView} role={role} onLogout={handleLogout} />
+            <Header
+              currentView={view}
+              onViewChange={setView}
+              role={role}
+              onLogout={handleLogout}
+            />
 
             {view === "calculator" && (
               <CalculatorView methods={activeMethods} />
