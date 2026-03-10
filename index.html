@@ -806,52 +806,103 @@
           )
             return;
 
+          const normalOptions = [];
+          const promoOptions = [];
+
+          const diasSemanaNombres = [
+            "Dom",
+            "Lun",
+            "Mar",
+            "Mié",
+            "Jue",
+            "Vie",
+            "Sáb",
+          ];
+
+          // Collect and separate options
+          resultsByInstallments.flattenedResults.forEach((catGroup) => {
+            const allOptionsForCat = [
+              catGroup.bestOption,
+              ...catGroup.alternatives,
+            ];
+
+            // Extract the best generic option
+            const bestNormal = allOptionsForCat.find(
+              (alt) =>
+                alt.method.banco === "Todos" &&
+                !alt.method.esPromocion &&
+                alt.method.porcentaje_descuento_cliente === 0,
+            );
+            if (bestNormal) {
+              normalOptions.push(bestNormal);
+            } else if (catGroup.bestOption.method.banco === "Todos") {
+              // Fallback
+              normalOptions.push(catGroup.bestOption);
+            }
+
+            // Extract promotional options
+            const promos = allOptionsForCat.filter(
+              (alt) =>
+                alt.method.esPromocion ||
+                alt.method.porcentaje_descuento_cliente > 0 ||
+                alt.method.banco !== "Todos",
+            );
+            promoOptions.push(...promos);
+          });
+
           let textToCopy = `*Opciones de Pago*\n\n`;
 
-          resultsByInstallments.flattenedResults.forEach((catGroup) => {
-            const item = catGroup.bestOption;
+          // Format normal options
+          normalOptions.forEach((item) => {
             const method = item.method;
-
-            textToCopy += `💳 *${method.medioCobro}* `;
-            if (method.banco !== "Todos") {
-              textToCopy += `(${method.banco}) `;
-            }
-            textToCopy += `- ${method.medioPago}\n`;
-
+            textToCopy += `💳 *${method.medioCobro}* - ${method.medioPago}\n`;
             textToCopy += `Total: ${formatCurrency(item.price)}\n`;
 
             if (method.cuotas > 1) {
               const cuotaAmount = item.price / method.cuotas;
               textToCopy += `👉 ${method.cuotas} cuotas de ${formatCurrency(cuotaAmount)}\n`;
             }
-
-            if (method.porcentaje_descuento_cliente > 0) {
-              textToCopy += `🏷️ ${method.porcentaje_descuento_cliente}% OFF `;
-              if (method.tope_reintegro > 0) {
-                textToCopy += `(Tope reintegro: $${method.tope_reintegro}) `;
-              }
-              textToCopy += `\n`;
-            }
-
-            const promoAlternatives = catGroup.alternatives.filter(
-              (alt) => alt.method.porcentaje_descuento_cliente > 0,
-            );
-            if (promoAlternatives.length > 0) {
-              textToCopy += `\n🎁 Otras promos disponibles:\n`;
-              promoAlternatives.forEach((alt) => {
-                textToCopy += `  - ${alt.method.banco}: ${alt.method.porcentaje_descuento_cliente}% OFF `;
-                if (alt.method.tope_reintegro > 0) {
-                  textToCopy += `(Tope: $${alt.method.tope_reintegro}) `;
-                }
-                textToCopy += `\n`;
-              });
-            }
-
             textToCopy += `\n`;
           });
 
+          // Format promotional options at the end
+          if (promoOptions.length > 0) {
+            textToCopy += `🎁 *Promociones*\n\n`;
+
+            promoOptions.forEach((item) => {
+              const method = item.method;
+              textToCopy += `💳 *${method.medioCobro}* (${method.banco}) - ${method.medioPago}\n`;
+              textToCopy += `Total: ${formatCurrency(item.price)}\n`;
+
+              if (method.cuotas > 1) {
+                const cuotaAmount = item.price / method.cuotas;
+                textToCopy += `👉 ${method.cuotas} cuotas de ${formatCurrency(cuotaAmount)}\n`;
+              }
+
+              if (method.porcentaje_descuento_cliente > 0) {
+                textToCopy += `🏷️ ${method.porcentaje_descuento_cliente}% OFF `;
+                if (method.tope_reintegro > 0) {
+                  textToCopy += `(Tope reintegro: $${method.tope_reintegro}) `;
+                }
+                textToCopy += `\n`;
+              }
+
+              if (method.dias_semana.length < 7) {
+                textToCopy += `📅 Días: ${method.dias_semana.map((d) => diasSemanaNombres[d]).join(", ")}\n`;
+              }
+              if (method.fecha_fin) {
+                // Adjusting for timezone to not show the wrong date
+                const d = new Date(method.fecha_fin);
+                d.setMinutes(d.getMinutes() + d.getTimezoneOffset());
+                textToCopy += `⏳ Hasta: ${d.toLocaleDateString("es-AR")}\n`;
+              }
+
+              textToCopy += `\n`;
+            });
+          }
+
           navigator.clipboard
-            .writeText(textToCopy)
+            .writeText(textToCopy.trim())
             .then(() => {
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
