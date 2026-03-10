@@ -58,6 +58,13 @@ const path = require('path');
     await page.goto(filePath);
     await page.waitForTimeout(2000);
 
+    // Login as Admin to access everything
+    await page.click("text=Soy Administrador");
+    await page.waitForTimeout(500);
+    await page.fill("input[type=\"password\"]", "admin123");
+    await page.click("button[type=\"submit\"]");
+    await page.waitForTimeout(1000); // Wait for login and transition
+
     // Test Promos View
     await page.click('text=Promociones');
     await page.waitForTimeout(1000);

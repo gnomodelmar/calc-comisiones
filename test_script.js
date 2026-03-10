@@ -7,7 +7,14 @@ const path = require('path');
     const page = await browser.newPage();
     const filePath = 'file://' + path.resolve('index.html');
     await page.goto(filePath);
-    await page.waitForTimeout(2000); // Wait for React and Lucide icons to render
+    await page.waitForTimeout(2000);
+
+    // Login as Admin to access everything
+    await page.click("text=Soy Administrador");
+    await page.waitForTimeout(500);
+    await page.fill("input[type=\"password\"]", "admin123");
+    await page.click("button[type=\"submit\"]");
+    await page.waitForTimeout(1000); // Wait for login and transition
 
     // Type amount to see the calculator view
     await page.fill('input[type="number"]', '10000');

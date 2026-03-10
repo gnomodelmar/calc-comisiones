@@ -8,6 +8,13 @@ const path = require('path');
     await page.goto(filePath);
     await page.waitForTimeout(2000);
 
+    // Login as Admin to access everything
+    await page.click("text=Soy Administrador");
+    await page.waitForTimeout(500);
+    await page.fill("input[type=\"password\"]", "admin123");
+    await page.click("button[type=\"submit\"]");
+    await page.waitForTimeout(1000); // Wait for login and transition
+
     // Enter Base Price
     await page.fill('input[placeholder="Ej: 15000"]', '10000');
     await page.waitForTimeout(500);
