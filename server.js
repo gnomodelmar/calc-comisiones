@@ -67,6 +67,7 @@ if (!fs.existsSync(DATA_FILE)) {
 // Endpoint to get payment methods
 app.get('/api/methods', (req, res) => {
   try {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     const data = fs.readFileSync(DATA_FILE, 'utf8');
     res.json(JSON.parse(data));
   } catch (error) {
@@ -79,7 +80,14 @@ app.get('/api/methods', (req, res) => {
 app.post('/api/methods', (req, res) => {
   try {
     const newData = req.body;
-    fs.writeFileSync(DATA_FILE, JSON.stringify(newData, null, 2));
+    if (!Array.isArray(newData)) {
+      return res.status(400).json({ error: 'Invalid data format: Expected an array' });
+    }
+
+    const tempFile = `${DATA_FILE}.tmp`;
+    fs.writeFileSync(tempFile, JSON.stringify(newData, null, 2));
+    fs.renameSync(tempFile, DATA_FILE);
+
     res.status(200).json({ message: 'Data saved successfully' });
   } catch (error) {
     console.error('Error writing data file:', error);

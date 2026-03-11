@@ -2853,7 +2853,7 @@
         // Fetch data from server
         const fetchMethods = async () => {
           try {
-            const response = await fetch('/api/methods');
+            const response = await fetch('/api/methods', { cache: 'no-store' });
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
 
@@ -2935,10 +2935,12 @@
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify(newMethods),
+              keepalive: true,
             });
             if (!response.ok) throw new Error('Network response was not ok');
           } catch (error) {
             console.error('Error saving methods:', error);
+            alert('Error al guardar los cambios en el servidor. Revisa tu conexión.');
           }
         };
 
