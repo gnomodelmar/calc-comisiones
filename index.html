@@ -1139,6 +1139,7 @@
         methods,
         deletedMethods,
         onAdd,
+        onBulkAdd,
         onEdit,
         onDelete,
         onRestore,
@@ -1146,6 +1147,10 @@
       }) => {
         const [editingId, setEditingId] = useState(null);
         const [showTrash, setShowTrash] = useState(false);
+        const [bulkInput, setBulkInput] = useState("");
+        const [bulkError, setBulkError] = useState("");
+        const [bulkSuccess, setBulkSuccess] = useState("");
+
         const [formData, setFormData] = useState({
           medioCobro: "",
           medioPago: "",
@@ -1296,6 +1301,119 @@
             bancos: defaults.bancos.sort(),
           };
         }, [methods]);
+
+        const handleBulkSubmit = () => {
+          setBulkError("");
+          setBulkSuccess("");
+
+          if (!bulkInput.trim()) {
+            setBulkError("Por favor, ingresá los datos en formato JSON.");
+            return;
+          }
+
+          try {
+            const parsedData = JSON.parse(bulkInput);
+
+            if (!Array.isArray(parsedData)) {
+              throw new Error("El archivo JSON debe contener un arreglo de objetos (empezar con [ y terminar con ]).");
+            }
+
+            if (parsedData.length === 0) {
+              throw new Error("El arreglo JSON está vacío.");
+            }
+
+            const validMethods = [];
+            let currentTimestamp = Date.now();
+
+            for (let i = 0; i < parsedData.length; i++) {
+              const item = parsedData[i];
+
+              if (!item.medioCobro || typeof item.medioCobro !== "string") {
+                throw new Error(`Fila ${i + 1}: El campo 'medioCobro' es obligatorio y debe ser texto.`);
+              }
+              if (!item.medioPago || typeof item.medioPago !== "string") {
+                throw new Error(`Fila ${i + 1}: El campo 'medioPago' es obligatorio y debe ser texto.`);
+              }
+              if (!item.banco || typeof item.banco !== "string") {
+                throw new Error(`Fila ${i + 1}: El campo 'banco' es obligatorio y debe ser texto.`);
+              }
+              if (item.cuotas === undefined || typeof item.cuotas !== "number" || item.cuotas < 1) {
+                throw new Error(`Fila ${i + 1}: El campo 'cuotas' es obligatorio y debe ser un número mayor o igual a 1.`);
+              }
+              if (item.comisionBase === undefined || typeof item.comisionBase !== "number") {
+                throw new Error(`Fila ${i + 1}: El campo 'comisionBase' es obligatorio y debe ser un número.`);
+              }
+              if (item.comisionFinanc === undefined || typeof item.comisionFinanc !== "number") {
+                throw new Error(`Fila ${i + 1}: El campo 'comisionFinanc' es obligatorio y debe ser un número.`);
+              }
+              if (item.dias_semana !== undefined && (!Array.isArray(item.dias_semana) || item.dias_semana.some(d => typeof d !== "number" || d < 0 || d > 6))) {
+                throw new Error(`Fila ${i + 1}: El campo 'dias_semana' debe ser un arreglo de números del 0 al 6.`);
+              }
+              if (item.esPromocion !== undefined && typeof item.esPromocion !== "boolean") {
+                throw new Error(`Fila ${i + 1}: El campo 'esPromocion' debe ser un valor booleano (true/false).`);
+              }
+
+              // Apply defaults and structure
+              validMethods.push({
+                id: currentTimestamp + i,
+                medioCobro: item.medioCobro,
+                medioPago: item.medioPago,
+                cuotas: item.cuotas,
+                banco: item.banco,
+                comisionBase: item.comisionBase,
+                comisionFinanc: item.comisionFinanc,
+                incluyeIVABase: !!item.incluyeIVABase,
+                incluyeIVAFinanc: !!item.incluyeIVAFinanc,
+                diasAcreditacion: typeof item.diasAcreditacion === "number" ? item.diasAcreditacion : 0,
+                instrucciones: item.instrucciones || "",
+                fecha_inicio: item.fecha_inicio || "",
+                fecha_fin: item.fecha_fin || "",
+                dias_semana: item.dias_semana || [0, 1, 2, 3, 4, 5, 6],
+                categoriaProducto: item.categoriaProducto || "",
+                porcentaje_descuento_cliente: typeof item.porcentaje_descuento_cliente === "number" ? item.porcentaje_descuento_cliente : 0,
+                tope_reintegro: typeof item.tope_reintegro === "number" ? item.tope_reintegro : 0,
+                tipo_tope: item.tipo_tope || "por_transaccion",
+                fecha_ultima_edicion: new Date().toISOString(),
+                esPromocion: !!item.esPromocion,
+                marketingNotes: item.marketingNotes || "",
+                marketingImages: item.marketingImages || []
+              });
+            }
+
+            onBulkAdd(validMethods);
+            setBulkSuccess(`¡Carga masiva exitosa! Se importaron ${validMethods.length} medios de cobro.`);
+            setBulkInput("");
+
+            setTimeout(() => {
+              setBulkSuccess("");
+            }, 5000);
+
+          } catch (error) {
+            if (error instanceof SyntaxError) {
+              setBulkError(`Error de formato JSON: ${error.message}. Asegurate de que la sintaxis sea correcta (ej. comillas dobles para las claves).`);
+            } else {
+              setBulkError(error.message);
+            }
+          }
+        };
+
+        const handleFileUpload = (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            setBulkInput(event.target.result);
+            setBulkError("");
+            setBulkSuccess("");
+          };
+          reader.onerror = () => {
+             setBulkError("Ocurrió un error al leer el archivo.");
+          };
+          reader.readAsText(file);
+          // Reset input so the same file can be uploaded again if needed
+          e.target.value = null;
+        };
 
         const handleSubmit = (e) => {
           e.preventDefault();
@@ -1662,6 +1780,72 @@
                 </div>
               </form>
             </div>
+
+            {/* Carga Masiva Section */}
+            {!editingId && (
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+                <div className="flex justify-between items-center mb-4 border-b pb-2">
+                  <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    <LucideIcon name="Database" size={20} className="text-blue-600" />
+                    Carga Masiva de Datos
+                  </h3>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">
+                  Podés importar múltiples medios de cobro al mismo tiempo usando formato JSON. Ideal para cargar datos exportados o generados por IA. Revisá el manual para ver el formato requerido.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="col-span-1 md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Pegá el contenido JSON aquí
+                    </label>
+                    <textarea
+                      className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm h-32"
+                      placeholder='[\n  {\n    "medioCobro": "Mercado Pago",\n    "medioPago": "QR",\n    ...\n  }\n]'
+                      value={bulkInput}
+                      onChange={(e) => setBulkInput(e.target.value)}
+                    ></textarea>
+                  </div>
+
+                  <div className="col-span-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      O subí un archivo (.json o .txt)
+                    </label>
+                    <input
+                      type="file"
+                      accept=".json,.txt"
+                      onChange={handleFileUpload}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+                    />
+                  </div>
+
+                  <div className="col-span-1 flex items-end">
+                    <button
+                      type="button"
+                      onClick={handleBulkSubmit}
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded transition-colors flex justify-center items-center gap-2"
+                    >
+                      <LucideIcon name="UploadCloud" size={18} />
+                      Validar y Cargar Datos
+                    </button>
+                  </div>
+                </div>
+
+                {bulkError && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-md text-sm flex items-start gap-2">
+                    <LucideIcon name="AlertCircle" size={16} className="mt-0.5 flex-shrink-0" />
+                    <div>{bulkError}</div>
+                  </div>
+                )}
+
+                {bulkSuccess && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 text-green-800 rounded-md text-sm flex items-start gap-2">
+                    <LucideIcon name="CheckCircle2" size={16} className="mt-0.5 flex-shrink-0" />
+                    <div>{bulkSuccess}</div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="flex justify-between items-center p-6 border-b">
@@ -3044,6 +3228,93 @@
               </div>
             ),
           },
+          {
+            id: "cargamasiva",
+            title: "Carga Masiva (Importar Datos)",
+            icon: "Database",
+            content: (
+              <div className="space-y-4 text-gray-700">
+                <p>
+                  Para acelerar la configuración inicial o para hacer actualizaciones grandes, puedes usar la herramienta de <strong>Carga Masiva</strong> en la parte inferior de la pestaña Configuración.
+                </p>
+                <p>
+                  Esta herramienta acepta datos en formato <strong>JSON</strong>. Es un formato de texto muy utilizado que puedes generar fácilmente usando ChatGPT, Claude, o armando un archivo a mano.
+                </p>
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded mt-2">
+                  <p className="text-sm text-blue-800">
+                    <strong>Tip:</strong> Si usas una Inteligencia Artificial, simplemente copiale el "Ejemplo de JSON" de abajo y dile: <em>"Generame un archivo JSON con este formato para los siguientes medios de cobro que te voy a pasar..."</em>.
+                  </p>
+                </div>
+
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  Reglas del Formato JSON
+                </h4>
+                <ul className="list-disc pl-5 space-y-2 text-sm">
+                  <li>El archivo debe ser un arreglo (lista) que empieza con <code>[</code> y termina con <code>]</code>.</li>
+                  <li>Cada medio de pago va entre llaves <code>{`{ ... }`}</code> y separado por comas.</li>
+                  <li><strong>Campos Obligatorios:</strong>
+                    <ul className="list-circle pl-5 mt-1 text-gray-600">
+                      <li><code>medioCobro</code> (Texto. Ej: "NAVE")</li>
+                      <li><code>medioPago</code> (Texto. Ej: "Tarjeta de Crédito")</li>
+                      <li><code>banco</code> (Texto. Ej: "Galicia" o "Todos")</li>
+                      <li><code>cuotas</code> (Número. Ej: 3. Para un pago o débito usar 1)</li>
+                      <li><code>comisionBase</code> (Número decimal. Ej: 1.5)</li>
+                      <li><code>comisionFinanc</code> (Número decimal. Ej: 14.8. Si no hay, usar 0)</li>
+                    </ul>
+                  </li>
+                  <li><strong>Campos Opcionales importantes:</strong>
+                    <ul className="list-circle pl-5 mt-1 text-gray-600">
+                      <li><code>esPromocion</code> (true/false)</li>
+                      <li><code>dias_semana</code> (Arreglo de números donde 0 es Domingo y 6 es Sábado. Ej: <code>[0, 1, 5, 6]</code>. Si no se manda, por defecto es todos los días).</li>
+                      <li><code>fecha_inicio</code> y <code>fecha_fin</code> (Texto en formato "YYYY-MM-DD". Ej: "2024-05-30").</li>
+                      <li><code>incluyeIVABase</code> y <code>incluyeIVAFinanc</code> (true/false)</li>
+                    </ul>
+                  </li>
+                </ul>
+
+                <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
+                  Ejemplo de Código JSON Listo para Copiar
+                </h4>
+                <pre className="bg-gray-800 text-green-400 p-4 rounded-lg overflow-x-auto text-xs font-mono">
+{`[
+  {
+    "medioCobro": "PayWay",
+    "medioPago": "Tarjeta de Débito",
+    "banco": "Todos",
+    "cuotas": 1,
+    "comisionBase": 0.8,
+    "comisionFinanc": 0,
+    "incluyeIVABase": false,
+    "incluyeIVAFinanc": false,
+    "diasAcreditacion": 1,
+    "esPromocion": false
+  },
+  {
+    "medioCobro": "NAVE",
+    "medioPago": "Tarjeta de Crédito",
+    "banco": "Macro",
+    "cuotas": 6,
+    "comisionBase": 1.9,
+    "comisionFinanc": 25.5,
+    "incluyeIVABase": false,
+    "incluyeIVAFinanc": false,
+    "diasAcreditacion": 2,
+    "esPromocion": true,
+    "porcentaje_descuento_cliente": 20,
+    "tope_reintegro": 5000,
+    "tipo_tope": "por_mes",
+    "dias_semana": [1, 2],
+    "fecha_fin": "2024-12-31",
+    "instrucciones": "Pasar por QR de la Terminal"
+  }
+]`}
+                </pre>
+                <p className="text-sm mt-4">
+                  Una vez que tengas tu JSON, simplemente pégalo en el cuadro de texto de "Carga Masiva de Datos" o guárdalo como archivo <code>.json</code> y súbelo. El sistema validará fila por fila y te avisará si hay algún error (por ejemplo, si te faltó un dato obligatorio). Solo se guardarán los datos si no hay errores.
+                </p>
+              </div>
+            ),
+          },
         ];
 
         return (
@@ -3423,6 +3694,10 @@
           updateMethods([...methods, method]);
         };
 
+        const bulkAddMethods = (newMethods) => {
+          updateMethods([...methods, ...newMethods]);
+        };
+
         const editMethod = (updatedMethod) => {
           updateMethods(
             methods.map((m) => (m.id === updatedMethod.id ? updatedMethod : m)),
@@ -3513,6 +3788,7 @@
                 methods={activeMethods}
                 deletedMethods={deletedMethods}
                 onAdd={addMethod}
+                onBulkAdd={bulkAddMethods}
                 onEdit={editMethod}
                 onDelete={deleteMethod}
                 onRestore={restoreMethod}
