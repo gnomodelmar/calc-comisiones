@@ -68,6 +68,9 @@ if (!fs.existsSync(DATA_FILE)) {
 app.get('/api/methods', (req, res) => {
   try {
     const data = fs.readFileSync(DATA_FILE, 'utf8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.json(JSON.parse(data));
   } catch (error) {
     console.error('Error reading data file:', error);

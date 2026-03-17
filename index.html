@@ -1144,6 +1144,7 @@
         onDelete,
         onRestore,
         onHardDelete,
+        onSync
       }) => {
         const [editingId, setEditingId] = useState(null);
         const [showTrash, setShowTrash] = useState(false);
@@ -1448,6 +1449,17 @@
 
         return (
           <div className="max-w-4xl mx-auto p-4">
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onSync}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm transition-colors"
+                title="Guardar forzadamente y sincronizar los datos con el servidor"
+              >
+                <LucideIcon name="RefreshCw" size={16} />
+                Guardar y Sincronizar Cambios
+              </button>
+            </div>
+
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-gray-800">
@@ -3602,7 +3614,12 @@
         // Fetch data from server
         const fetchMethods = async () => {
           try {
-            const response = await fetch("/api/methods");
+            const response = await fetch("/api/methods", {
+              headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+              }
+            });
             if (!response.ok) throw new Error("Network response was not ok");
             const data = await response.json();
 
@@ -3696,6 +3713,12 @@
         const updateMethods = (newMethods) => {
           setMethods(newMethods);
           saveMethods(newMethods);
+        };
+
+        const handleForceSync = async () => {
+          setLoading(true);
+          await saveMethods(methods);
+          await fetchMethods();
         };
 
         const activeMethods = useMemo(
@@ -3810,6 +3833,7 @@
                 onDelete={deleteMethod}
                 onRestore={restoreMethod}
                 onHardDelete={hardDeleteMethod}
+                onSync={handleForceSync}
               />
             )}
           </div>
