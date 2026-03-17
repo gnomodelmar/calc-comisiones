@@ -26,14 +26,14 @@
     "porcentaje_descuento_cliente": 0,
     "tope_reintegro": 0,
     "tipo_tope": "por_transaccion",
-    "fecha_ultima_edicion": "2026-03-17T10:10:46.149Z",
+    "fecha_ultima_edicion": "2026-03-17T11:00:53.107Z",
     "esPromocion": false,
     "deletedAt": null,
     "marketingNotes": "",
     "marketingImages": []
   },
   {
-    "id": 1773742248238,
+    "id": 1773745255010,
     "medioCobro": "Prueba Masiva",
     "medioPago": "Transferencia",
     "cuotas": 1,
@@ -59,7 +59,7 @@
     "porcentaje_descuento_cliente": 0,
     "tope_reintegro": 0,
     "tipo_tope": "por_transaccion",
-    "fecha_ultima_edicion": "2026-03-17T10:10:48.238Z",
+    "fecha_ultima_edicion": "2026-03-17T11:00:55.010Z",
     "esPromocion": false,
     "marketingNotes": "",
     "marketingImages": []
