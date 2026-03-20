@@ -1453,10 +1453,10 @@
               <button
                 onClick={onSync}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm transition-colors"
-                title="Guardar forzadamente y sincronizar los datos con el servidor"
+                title="Sincronizar y traer los últimos datos guardados en el servidor"
               >
                 <LucideIcon name="RefreshCw" size={16} />
-                Guardar y Sincronizar Cambios
+                Sincronizar Datos
               </button>
             </div>
 
@@ -3717,7 +3717,6 @@
 
         const handleForceSync = async () => {
           setLoading(true);
-          await saveMethods(methods);
           await fetchMethods();
         };
 
