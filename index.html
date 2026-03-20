@@ -1145,7 +1145,8 @@
         onRestore,
         onHardDelete,
         onPull,
-        onPush
+        onPush,
+        onExport
       }) => {
         const [editingId, setEditingId] = useState(null);
         const [showTrash, setShowTrash] = useState(false);
@@ -1458,6 +1459,14 @@
               >
                 <LucideIcon name="DownloadCloud" size={16} />
                 Descargar del Servidor
+              </button>
+              <button
+                onClick={onExport}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-800 hover:bg-indigo-200 font-medium rounded-lg shadow-sm transition-colors"
+                title="Descargar una copia local de todos los medios de cobro (Ideal para GitHub Pages)"
+              >
+                <LucideIcon name="Save" size={16} />
+                Exportar Copia de Seguridad
               </button>
               <button
                 onClick={onPush}
@@ -3620,7 +3629,63 @@
         const [methods, setMethods] = useState([]);
         const [loading, setLoading] = useState(true);
 
-        // Fetch data from server
+        const processAndSetMethods = async (data, shouldSave = false) => {
+          const parsed = data.map((m) => {
+            const oldIncluyeIVA =
+              m.incluyeIVA !== undefined ? m.incluyeIVA : false;
+            const incluyeIVABase =
+              m.incluyeIVABase !== undefined
+                ? m.incluyeIVABase
+                : oldIncluyeIVA;
+            const incluyeIVAFinanc =
+              m.incluyeIVAFinanc !== undefined
+                ? m.incluyeIVAFinanc
+                : oldIncluyeIVA;
+
+            return {
+              ...m,
+              incluyeIVABase,
+              incluyeIVAFinanc,
+              fecha_inicio: m.fecha_inicio || "",
+              fecha_fin: m.fecha_fin || "",
+              dias_semana: m.dias_semana || [0, 1, 2, 3, 4, 5, 6],
+              categoriaProducto: m.categoriaProducto || "",
+              porcentaje_descuento_cliente:
+                m.porcentaje_descuento_cliente || 0,
+              tope_reintegro: m.tope_reintegro || 0,
+              tipo_tope: m.tipo_tope || "por_transaccion",
+              fecha_ultima_edicion:
+                m.fecha_ultima_edicion || new Date().toISOString(),
+              esPromocion: m.esPromocion || false,
+              deletedAt: m.deletedAt || null,
+              marketingNotes: m.marketingNotes || "",
+              marketingImages: m.marketingImages || [],
+            };
+          });
+
+          const now = new Date();
+          const msPerDay = 1000 * 60 * 60 * 24;
+          let changed = false;
+
+          const purgedMethods = parsed.filter((m) => {
+            if (m.deletedAt) {
+              const deletedDate = new Date(m.deletedAt);
+              const diffDays = Math.floor((now - deletedDate) / msPerDay);
+              if (diffDays >= 7) {
+                changed = true;
+                return false;
+              }
+            }
+            return true;
+          });
+
+          if (changed || shouldSave) {
+            await saveMethods(purgedMethods);
+          }
+          setMethods(purgedMethods);
+        };
+
+        // Fetch data
         const fetchMethods = async () => {
           try {
             const response = await fetch("/api/methods", {
@@ -3631,69 +3696,21 @@
             });
             if (!response.ok) throw new Error("Network response was not ok");
             const data = await response.json();
-
-            // Migrate old data to new schema
-            const parsed = data.map((m) => {
-              // Handle old data with single incluyeIVA
-              const oldIncluyeIVA =
-                m.incluyeIVA !== undefined ? m.incluyeIVA : false;
-              const incluyeIVABase =
-                m.incluyeIVABase !== undefined
-                  ? m.incluyeIVABase
-                  : oldIncluyeIVA;
-              const incluyeIVAFinanc =
-                m.incluyeIVAFinanc !== undefined
-                  ? m.incluyeIVAFinanc
-                  : oldIncluyeIVA;
-
-              return {
-                ...m,
-                incluyeIVABase,
-                incluyeIVAFinanc,
-                fecha_inicio: m.fecha_inicio || "",
-                fecha_fin: m.fecha_fin || "",
-                dias_semana: m.dias_semana || [0, 1, 2, 3, 4, 5, 6],
-                categoriaProducto: m.categoriaProducto || "",
-                porcentaje_descuento_cliente:
-                  m.porcentaje_descuento_cliente || 0,
-                tope_reintegro: m.tope_reintegro || 0,
-                tipo_tope: m.tipo_tope || "por_transaccion",
-                fecha_ultima_edicion:
-                  m.fecha_ultima_edicion || new Date().toISOString(),
-                esPromocion: m.esPromocion || false,
-                deletedAt: m.deletedAt || null,
-                marketingNotes: m.marketingNotes || "",
-                marketingImages: m.marketingImages || [],
-              };
-            });
-
-            // 7-day auto purge for deleted items
-            const now = new Date();
-            const msPerDay = 1000 * 60 * 60 * 24;
-            let changed = false;
-
-            const purgedMethods = parsed.filter((m) => {
-              if (m.deletedAt) {
-                const deletedDate = new Date(m.deletedAt);
-                const diffDays = Math.floor((now - deletedDate) / msPerDay);
-                if (diffDays >= 7) {
-                  changed = true;
-                  return false; // Hard delete
-                }
-              }
-              return true;
-            });
-
-            if (changed) {
-              await saveMethods(purgedMethods);
-              setMethods(purgedMethods);
-            } else {
-              setMethods(parsed);
-            }
+            await processAndSetMethods(data);
           } catch (error) {
-            console.error("Error fetching methods:", error);
-            // Fallback to initial data if server is down
-            setMethods(initialPaymentMethods);
+            console.warn("Error fetching from API, attempting local fallback:", error);
+            // Fallback to localStorage for static hosts like GitHub Pages
+            const localData = localStorage.getItem("appPaymentMethods");
+            if (localData) {
+              try {
+                const parsedLocal = JSON.parse(localData);
+                await processAndSetMethods(parsedLocal);
+              } catch (e) {
+                setMethods(initialPaymentMethods);
+              }
+            } else {
+               setMethods(initialPaymentMethods);
+            }
           } finally {
             setLoading(false);
           }
@@ -3704,6 +3721,14 @@
         }, []);
 
         const saveMethods = async (newMethods) => {
+          // ALWAYS save locally first as a fallback for static hosting
+          try {
+            localStorage.setItem("appPaymentMethods", JSON.stringify(newMethods));
+          } catch (e) {
+            console.error("Local storage full or inaccessible", e);
+          }
+
+          // Try saving to server
           try {
             const response = await fetch("/api/methods", {
               method: "POST",
@@ -3714,15 +3739,15 @@
             });
             if (!response.ok) throw new Error("Network response was not ok");
           } catch (error) {
-            console.error("Error saving methods:", error);
-            alert("Hubo un error al intentar guardar los datos en el servidor. Revisa tu conexión.");
+            console.warn("API Guardado falló. Los datos solo se guardaron localmente.", error);
+            throw error; // Throw so caller can handle UI feedback
           }
         };
 
         // Custom setMethods wrapper to also save to server
         const updateMethods = (newMethods) => {
           setMethods(newMethods);
-          saveMethods(newMethods);
+          saveMethods(newMethods).catch(() => {}); // Catch silent errors for normal operations
         };
 
         const handleForcePull = async () => {
@@ -3732,9 +3757,14 @@
 
         const handleForcePush = async () => {
           setLoading(true);
-          await saveMethods(methods);
-          setLoading(false);
-          alert("Datos guardados en el servidor exitosamente.");
+          try {
+            await saveMethods(methods);
+            alert("Datos guardados en el servidor exitosamente.");
+          } catch (e) {
+            alert("La aplicación está funcionando en modo local (ej. GitHub Pages). Tus datos se han guardado de forma segura en este navegador.\n\nPara verlos en otro dispositivo, usa el botón 'Exportar Copia de Seguridad' y cárgalos allí.");
+          } finally {
+            setLoading(false);
+          }
         };
 
         const activeMethods = useMemo(
@@ -3851,6 +3881,13 @@
                 onHardDelete={hardDeleteMethod}
                 onPull={handleForcePull}
                 onPush={handleForcePush}
+                onExport={() => {
+                  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(activeMethods, null, 2));
+                  const dlAnchorElem = document.createElement('a');
+                  dlAnchorElem.setAttribute("href",     dataStr     );
+                  dlAnchorElem.setAttribute("download", "medios_de_cobro_backup.json");
+                  dlAnchorElem.click();
+                }}
               />
             )}
           </div>
