@@ -1144,6 +1144,7 @@
         onDelete,
         onRestore,
         onHardDelete,
+        onSync
       }) => {
         const [editingId, setEditingId] = useState(null);
         const [showTrash, setShowTrash] = useState(false);
@@ -1448,6 +1449,17 @@
 
         return (
           <div className="max-w-4xl mx-auto p-4">
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={onSync}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg shadow-sm transition-colors"
+                title="Guardar forzadamente y sincronizar los datos con el servidor"
+              >
+                <LucideIcon name="RefreshCw" size={16} />
+                Guardar y Sincronizar Cambios
+              </button>
+            </div>
+
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-bold text-gray-800">
@@ -3247,27 +3259,44 @@
                 </div>
 
                 <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
-                  Reglas del Formato JSON
+                  Reglas del Formato JSON y Diccionario de Datos
                 </h4>
-                <ul className="list-disc pl-5 space-y-2 text-sm">
-                  <li>El archivo debe ser un arreglo (lista) que empieza con <code>[</code> y termina con <code>]</code>.</li>
-                  <li>Cada medio de pago va entre llaves <code>{`{ ... }`}</code> y separado por comas.</li>
-                  <li><strong>Campos Obligatorios:</strong>
-                    <ul className="list-circle pl-5 mt-1 text-gray-600">
-                      <li><code>medioCobro</code> (Texto. Ej: "NAVE")</li>
-                      <li><code>medioPago</code> (Texto. Ej: "Tarjeta de Crédito")</li>
-                      <li><code>banco</code> (Texto. Ej: "Galicia" o "Todos")</li>
-                      <li><code>cuotas</code> (Número. Ej: 3. Para un pago o débito usar 1)</li>
-                      <li><code>comisionBase</code> (Número decimal. Ej: 1.5)</li>
-                      <li><code>comisionFinanc</code> (Número decimal. Ej: 14.8. Si no hay, usar 0)</li>
+                <p className="text-sm mt-2">El archivo debe ser un arreglo (lista) que empieza con <code>[</code> y termina con <code>]</code>. Cada medio de pago va entre llaves <code>{`{ ... }`}</code> y separado por comas.</p>
+                <ul className="list-disc pl-5 space-y-4 text-sm mt-4">
+                  <li><strong>Identificación (Obligatorios):</strong>
+                    <ul className="list-circle pl-5 mt-1 text-gray-600 space-y-1">
+                      <li><code>medioCobro</code>: La terminal o servicio. <em>Opciones estándar sugeridas: "NAVE", "PayWay", "Mercado Pago", "Viumi", "Getnet", "Ualá Bis".</em> (Si usas otro, se creará automáticamente).</li>
+                      <li><code>medioPago</code>: El método del cliente. <em>Opciones estándar sugeridas: "Tarjeta de Crédito", "Tarjeta de Débito", "Dinero en cuenta", "Transferencia", "QR".</em></li>
+                      <li><code>banco</code>: Institución bancaria. <em>Opciones estándar sugeridas: "Todos", "Galicia", "Santander", "BBVA", "Macro", "ICBC", "Nación", "Provincia", "Ciudad", "Patagonia", "Comafi".</em> Si no aplica a uno específico, usa siempre <strong>"Todos"</strong>.</li>
+                      <li><code>cuotas</code>: (Número) Cantidad de cuotas. Para pagos en una exhibición (ej. débito o transferencias), usa <strong>1</strong>.</li>
                     </ul>
                   </li>
-                  <li><strong>Campos Opcionales importantes:</strong>
-                    <ul className="list-circle pl-5 mt-1 text-gray-600">
-                      <li><code>esPromocion</code> (true/false)</li>
-                      <li><code>dias_semana</code> (Arreglo de números donde 0 es Domingo y 6 es Sábado. Ej: <code>[0, 1, 5, 6]</code>. Si no se manda, por defecto es todos los días).</li>
-                      <li><code>fecha_inicio</code> y <code>fecha_fin</code> (Texto en formato "YYYY-MM-DD". Ej: "2024-05-30").</li>
-                      <li><code>incluyeIVABase</code> y <code>incluyeIVAFinanc</code> (true/false)</li>
+
+                  <li><strong>Comisiones e Impuestos (Obligatorios):</strong>
+                    <ul className="list-circle pl-5 mt-1 text-gray-600 space-y-1">
+                      <li><code>comisionBase</code>: (Número decimal) La tarifa de procesamiento por usar el medio de cobro (ej: 1.5).</li>
+                      <li><code>comisionFinanc</code>: (Número decimal) El recargo extra del banco por ofrecer cuotas (ej: 14.8). Si es en 1 pago, usa <strong>0</strong>.</li>
+                      <li><code>incluyeIVABase</code> y <code>incluyeIVAFinanc</code>: (Booleanos: true/false). <strong>¡Importante!</strong> Si el dato de comisión que te pasó el banco es el <strong>CFT (Costo Financiero Total)</strong>, entonces ya incluye impuestos y debes poner <code>true</code>. Si el dato es una <strong>TNA</strong> o indica claramente "Comisión X% + IVA", debes poner <code>false</code> para que el sistema le sume el 21%.</li>
+                    </ul>
+                  </li>
+
+                  <li><strong>Promociones (Opcionales - Importantes para Marketing):</strong>
+                    <p className="text-xs text-indigo-700 my-1 bg-indigo-50 p-2 rounded"><strong>Diferenciar Promo vs Habitual:</strong> Una opción "Habitual" está disponible siempre para todos (ej: Débito MercadoPago o Visa Crédito 1 pago). Una "Promoción" (marcada con <code>esPromocion: true</code>) es un acuerdo específico que usualmente tiene un banco, un descuento para el cliente, un tope de reintegro y fechas límite (ej: MODO BNA 20% OFF Jueves).</p>
+                    <ul className="list-circle pl-5 mt-1 text-gray-600 space-y-1">
+                      <li><code>esPromocion</code>: (true/false) Define si este objeto es una promoción destacada.</li>
+                      <li><code>porcentaje_descuento_cliente</code>: (Número decimal) Ej: 20 (Para un 20% OFF). Es solo visual para el cliente.</li>
+                      <li><code>tope_reintegro</code>: (Número) El monto máximo en pesos que le devuelven al cliente. Ej: 5000.</li>
+                      <li><code>tipo_tope</code>: (Texto) Puede ser exactamente <strong>"por_transaccion"</strong> (el cliente tiene ese límite de reintegro en cada compra individual) o <strong>"por_mes"</strong> (es el límite total que le devolverá el banco ese mes calendario, independientemente de si hace 1 o 10 compras).</li>
+                    </ul>
+                  </li>
+
+                  <li><strong>Vigencia e Información Adicional (Opcionales):</strong>
+                    <ul className="list-circle pl-5 mt-1 text-gray-600 space-y-1">
+                      <li><code>dias_semana</code>: (Arreglo de números) Días que está activo. 0 es Domingo y 6 es Sábado. Ej: <code>[4, 5, 6]</code> (Jue, Vie, Sab). Si lo omites, por defecto aplicará todos los días.</li>
+                      <li><code>fecha_inicio</code> y <code>fecha_fin</code>: (Texto) Fechas límite en formato "YYYY-MM-DD". Ej: "2024-05-30".</li>
+                      <li><code>diasAcreditacion</code>: (Número) Días que tarda en entrarte la plata.</li>
+                      <li><code>instrucciones</code>: (Texto) Indicación para el vendedor. Ej: "Cobrar con el posnet verde".</li>
+                      <li><code>categoriaProducto</code>: (Texto) Ej: "Indumentaria".</li>
                     </ul>
                   </li>
                 </ul>
@@ -3585,7 +3614,12 @@
         // Fetch data from server
         const fetchMethods = async () => {
           try {
-            const response = await fetch("/api/methods");
+            const response = await fetch("/api/methods", {
+              headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+              }
+            });
             if (!response.ok) throw new Error("Network response was not ok");
             const data = await response.json();
 
@@ -3679,6 +3713,12 @@
         const updateMethods = (newMethods) => {
           setMethods(newMethods);
           saveMethods(newMethods);
+        };
+
+        const handleForceSync = async () => {
+          setLoading(true);
+          await saveMethods(methods);
+          await fetchMethods();
         };
 
         const activeMethods = useMemo(
@@ -3793,6 +3833,7 @@
                 onDelete={deleteMethod}
                 onRestore={restoreMethod}
                 onHardDelete={hardDeleteMethod}
+                onSync={handleForceSync}
               />
             )}
           </div>
