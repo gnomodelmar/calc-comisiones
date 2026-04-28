@@ -1146,7 +1146,7 @@
         onHardDelete,
         onPull,
         onPush,
-        onExport
+        onExport,
       }) => {
         const [editingId, setEditingId] = useState(null);
         const [showTrash, setShowTrash] = useState(false);
@@ -1318,7 +1318,9 @@
             const parsedData = JSON.parse(bulkInput);
 
             if (!Array.isArray(parsedData)) {
-              throw new Error("El archivo JSON debe contener un arreglo de objetos (empezar con [ y terminar con ]).");
+              throw new Error(
+                "El archivo JSON debe contener un arreglo de objetos (empezar con [ y terminar con ]).",
+              );
             }
 
             if (parsedData.length === 0) {
@@ -1332,28 +1334,63 @@
               const item = parsedData[i];
 
               if (!item.medioCobro || typeof item.medioCobro !== "string") {
-                throw new Error(`Fila ${i + 1}: El campo 'medioCobro' es obligatorio y debe ser texto.`);
+                throw new Error(
+                  `Fila ${i + 1}: El campo 'medioCobro' es obligatorio y debe ser texto.`,
+                );
               }
               if (!item.medioPago || typeof item.medioPago !== "string") {
-                throw new Error(`Fila ${i + 1}: El campo 'medioPago' es obligatorio y debe ser texto.`);
+                throw new Error(
+                  `Fila ${i + 1}: El campo 'medioPago' es obligatorio y debe ser texto.`,
+                );
               }
               if (!item.banco || typeof item.banco !== "string") {
-                throw new Error(`Fila ${i + 1}: El campo 'banco' es obligatorio y debe ser texto.`);
+                throw new Error(
+                  `Fila ${i + 1}: El campo 'banco' es obligatorio y debe ser texto.`,
+                );
               }
-              if (item.cuotas === undefined || typeof item.cuotas !== "number" || item.cuotas < 1) {
-                throw new Error(`Fila ${i + 1}: El campo 'cuotas' es obligatorio y debe ser un número mayor o igual a 1.`);
+              if (
+                item.cuotas === undefined ||
+                typeof item.cuotas !== "number" ||
+                item.cuotas < 1
+              ) {
+                throw new Error(
+                  `Fila ${i + 1}: El campo 'cuotas' es obligatorio y debe ser un número mayor o igual a 1.`,
+                );
               }
-              if (item.comisionBase === undefined || typeof item.comisionBase !== "number") {
-                throw new Error(`Fila ${i + 1}: El campo 'comisionBase' es obligatorio y debe ser un número.`);
+              if (
+                item.comisionBase === undefined ||
+                typeof item.comisionBase !== "number"
+              ) {
+                throw new Error(
+                  `Fila ${i + 1}: El campo 'comisionBase' es obligatorio y debe ser un número.`,
+                );
               }
-              if (item.comisionFinanc === undefined || typeof item.comisionFinanc !== "number") {
-                throw new Error(`Fila ${i + 1}: El campo 'comisionFinanc' es obligatorio y debe ser un número.`);
+              if (
+                item.comisionFinanc === undefined ||
+                typeof item.comisionFinanc !== "number"
+              ) {
+                throw new Error(
+                  `Fila ${i + 1}: El campo 'comisionFinanc' es obligatorio y debe ser un número.`,
+                );
               }
-              if (item.dias_semana !== undefined && (!Array.isArray(item.dias_semana) || item.dias_semana.some(d => typeof d !== "number" || d < 0 || d > 6))) {
-                throw new Error(`Fila ${i + 1}: El campo 'dias_semana' debe ser un arreglo de números del 0 al 6.`);
+              if (
+                item.dias_semana !== undefined &&
+                (!Array.isArray(item.dias_semana) ||
+                  item.dias_semana.some(
+                    (d) => typeof d !== "number" || d < 0 || d > 6,
+                  ))
+              ) {
+                throw new Error(
+                  `Fila ${i + 1}: El campo 'dias_semana' debe ser un arreglo de números del 0 al 6.`,
+                );
               }
-              if (item.esPromocion !== undefined && typeof item.esPromocion !== "boolean") {
-                throw new Error(`Fila ${i + 1}: El campo 'esPromocion' debe ser un valor booleano (true/false).`);
+              if (
+                item.esPromocion !== undefined &&
+                typeof item.esPromocion !== "boolean"
+              ) {
+                throw new Error(
+                  `Fila ${i + 1}: El campo 'esPromocion' debe ser un valor booleano (true/false).`,
+                );
               }
 
               // Apply defaults and structure
@@ -1367,33 +1404,45 @@
                 comisionFinanc: item.comisionFinanc,
                 incluyeIVABase: !!item.incluyeIVABase,
                 incluyeIVAFinanc: !!item.incluyeIVAFinanc,
-                diasAcreditacion: typeof item.diasAcreditacion === "number" ? item.diasAcreditacion : 0,
+                diasAcreditacion:
+                  typeof item.diasAcreditacion === "number"
+                    ? item.diasAcreditacion
+                    : 0,
                 instrucciones: item.instrucciones || "",
                 fecha_inicio: item.fecha_inicio || "",
                 fecha_fin: item.fecha_fin || "",
                 dias_semana: item.dias_semana || [0, 1, 2, 3, 4, 5, 6],
                 categoriaProducto: item.categoriaProducto || "",
-                porcentaje_descuento_cliente: typeof item.porcentaje_descuento_cliente === "number" ? item.porcentaje_descuento_cliente : 0,
-                tope_reintegro: typeof item.tope_reintegro === "number" ? item.tope_reintegro : 0,
+                porcentaje_descuento_cliente:
+                  typeof item.porcentaje_descuento_cliente === "number"
+                    ? item.porcentaje_descuento_cliente
+                    : 0,
+                tope_reintegro:
+                  typeof item.tope_reintegro === "number"
+                    ? item.tope_reintegro
+                    : 0,
                 tipo_tope: item.tipo_tope || "por_transaccion",
                 fecha_ultima_edicion: new Date().toISOString(),
                 esPromocion: !!item.esPromocion,
                 marketingNotes: item.marketingNotes || "",
-                marketingImages: item.marketingImages || []
+                marketingImages: item.marketingImages || [],
               });
             }
 
             onBulkAdd(validMethods);
-            setBulkSuccess(`¡Carga masiva exitosa! Se importaron ${validMethods.length} medios de cobro.`);
+            setBulkSuccess(
+              `¡Carga masiva exitosa! Se importaron ${validMethods.length} medios de cobro.`,
+            );
             setBulkInput("");
 
             setTimeout(() => {
               setBulkSuccess("");
             }, 5000);
-
           } catch (error) {
             if (error instanceof SyntaxError) {
-              setBulkError(`Error de formato JSON: ${error.message}. Asegurate de que la sintaxis sea correcta (ej. comillas dobles para las claves).`);
+              setBulkError(
+                `Error de formato JSON: ${error.message}. Asegurate de que la sintaxis sea correcta (ej. comillas dobles para las claves).`,
+              );
             } else {
               setBulkError(error.message);
             }
@@ -1411,7 +1460,7 @@
             setBulkSuccess("");
           };
           reader.onerror = () => {
-             setBulkError("Ocurrió un error al leer el archivo.");
+            setBulkError("Ocurrió un error al leer el archivo.");
           };
           reader.readAsText(file);
           // Reset input so the same file can be uploaded again if needed
@@ -1816,12 +1865,19 @@
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
                 <div className="flex justify-between items-center mb-4 border-b pb-2">
                   <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                    <LucideIcon name="Database" size={20} className="text-blue-600" />
+                    <LucideIcon
+                      name="Database"
+                      size={20}
+                      className="text-blue-600"
+                    />
                     Carga Masiva de Datos
                   </h3>
                 </div>
                 <p className="text-sm text-gray-600 mb-4">
-                  Podés importar múltiples medios de cobro al mismo tiempo usando formato JSON. Ideal para cargar datos exportados o generados por IA. Revisá el manual para ver el formato requerido.
+                  Podés importar múltiples medios de cobro al mismo tiempo
+                  usando formato JSON. Ideal para cargar datos exportados o
+                  generados por IA. Revisá el manual para ver el formato
+                  requerido.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1863,14 +1919,22 @@
 
                 {bulkError && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-800 rounded-md text-sm flex items-start gap-2">
-                    <LucideIcon name="AlertCircle" size={16} className="mt-0.5 flex-shrink-0" />
+                    <LucideIcon
+                      name="AlertCircle"
+                      size={16}
+                      className="mt-0.5 flex-shrink-0"
+                    />
                     <div>{bulkError}</div>
                   </div>
                 )}
 
                 {bulkSuccess && (
                   <div className="mt-4 p-3 bg-green-50 border border-green-200 text-green-800 rounded-md text-sm flex items-start gap-2">
-                    <LucideIcon name="CheckCircle2" size={16} className="mt-0.5 flex-shrink-0" />
+                    <LucideIcon
+                      name="CheckCircle2"
+                      size={16}
+                      className="mt-0.5 flex-shrink-0"
+                    />
                     <div>{bulkSuccess}</div>
                   </div>
                 )}
@@ -3265,56 +3329,168 @@
             content: (
               <div className="space-y-4 text-gray-700">
                 <p>
-                  Para acelerar la configuración inicial o para hacer actualizaciones grandes, puedes usar la herramienta de <strong>Carga Masiva</strong> en la parte inferior de la pestaña Configuración.
+                  Para acelerar la configuración inicial o para hacer
+                  actualizaciones grandes, puedes usar la herramienta de{" "}
+                  <strong>Carga Masiva</strong> en la parte inferior de la
+                  pestaña Configuración.
                 </p>
                 <p>
-                  Esta herramienta acepta datos en formato <strong>JSON</strong>. Es un formato de texto muy utilizado que puedes generar fácilmente usando ChatGPT, Claude, o armando un archivo a mano.
+                  Esta herramienta acepta datos en formato <strong>JSON</strong>
+                  . Es un formato de texto muy utilizado que puedes generar
+                  fácilmente usando ChatGPT, Claude, o armando un archivo a
+                  mano.
                 </p>
                 <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded mt-2">
                   <p className="text-sm text-blue-800">
-                    <strong>Tip:</strong> Si usas una Inteligencia Artificial, simplemente copiale el "Ejemplo de JSON" de abajo y dile: <em>"Generame un archivo JSON con este formato para los siguientes medios de cobro que te voy a pasar..."</em>.
+                    <strong>Tip:</strong> Si usas una Inteligencia Artificial,
+                    simplemente copiale el "Ejemplo de JSON" de abajo y dile:{" "}
+                    <em>
+                      "Generame un archivo JSON con este formato para los
+                      siguientes medios de cobro que te voy a pasar..."
+                    </em>
+                    .
                   </p>
                 </div>
 
                 <h4 className="font-semibold text-lg text-indigo-800 mt-6 border-b pb-2">
                   Reglas del Formato JSON y Diccionario de Datos
                 </h4>
-                <p className="text-sm mt-2">El archivo debe ser un arreglo (lista) que empieza con <code>[</code> y termina con <code>]</code>. Cada medio de pago va entre llaves <code>{`{ ... }`}</code> y separado por comas.</p>
+                <p className="text-sm mt-2">
+                  El archivo debe ser un arreglo (lista) que empieza con{" "}
+                  <code>[</code> y termina con <code>]</code>. Cada medio de
+                  pago va entre llaves <code>{`{ ... }`}</code> y separado por
+                  comas.
+                </p>
                 <ul className="list-disc pl-5 space-y-4 text-sm mt-4">
-                  <li><strong>Identificación (Obligatorios):</strong>
+                  <li>
+                    <strong>Identificación (Obligatorios):</strong>
                     <ul className="list-circle pl-5 mt-1 text-gray-600 space-y-1">
-                      <li><code>medioCobro</code>: La terminal o servicio. <em>Opciones estándar sugeridas: "NAVE", "PayWay", "Mercado Pago", "Viumi", "Getnet", "Ualá Bis".</em> (Si usas otro, se creará automáticamente).</li>
-                      <li><code>medioPago</code>: El método del cliente. <em>Opciones estándar sugeridas: "Tarjeta de Crédito", "Tarjeta de Débito", "Dinero en cuenta", "Transferencia", "QR".</em></li>
-                      <li><code>banco</code>: Institución bancaria. <em>Opciones estándar sugeridas: "Todos", "Galicia", "Santander", "BBVA", "Macro", "ICBC", "Nación", "Provincia", "Ciudad", "Patagonia", "Comafi".</em> Si no aplica a uno específico, usa siempre <strong>"Todos"</strong>.</li>
-                      <li><code>cuotas</code>: (Número) Cantidad de cuotas. Para pagos en una exhibición (ej. débito o transferencias), usa <strong>1</strong>.</li>
+                      <li>
+                        <code>medioCobro</code>: La terminal o servicio.{" "}
+                        <em>
+                          Opciones estándar sugeridas: "NAVE", "PayWay",
+                          "Mercado Pago", "Viumi", "Getnet", "Ualá Bis".
+                        </em>{" "}
+                        (Si usas otro, se creará automáticamente).
+                      </li>
+                      <li>
+                        <code>medioPago</code>: El método del cliente.{" "}
+                        <em>
+                          Opciones estándar sugeridas: "Tarjeta de Crédito",
+                          "Tarjeta de Débito", "Dinero en cuenta",
+                          "Transferencia", "QR".
+                        </em>
+                      </li>
+                      <li>
+                        <code>banco</code>: Institución bancaria.{" "}
+                        <em>
+                          Opciones estándar sugeridas: "Todos", "Galicia",
+                          "Santander", "BBVA", "Macro", "ICBC", "Nación",
+                          "Provincia", "Ciudad", "Patagonia", "Comafi".
+                        </em>{" "}
+                        Si no aplica a uno específico, usa siempre{" "}
+                        <strong>"Todos"</strong>.
+                      </li>
+                      <li>
+                        <code>cuotas</code>: (Número) Cantidad de cuotas. Para
+                        pagos en una exhibición (ej. débito o transferencias),
+                        usa <strong>1</strong>.
+                      </li>
                     </ul>
                   </li>
 
-                  <li><strong>Comisiones e Impuestos (Obligatorios):</strong>
+                  <li>
+                    <strong>Comisiones e Impuestos (Obligatorios):</strong>
                     <ul className="list-circle pl-5 mt-1 text-gray-600 space-y-1">
-                      <li><code>comisionBase</code>: (Número decimal) La tarifa de procesamiento por usar el medio de cobro (ej: 1.5).</li>
-                      <li><code>comisionFinanc</code>: (Número decimal) El recargo extra del banco por ofrecer cuotas (ej: 14.8). Si es en 1 pago, usa <strong>0</strong>.</li>
-                      <li><code>incluyeIVABase</code> y <code>incluyeIVAFinanc</code>: (Booleanos: true/false). <strong>¡Importante!</strong> Si el dato de comisión que te pasó el banco es el <strong>CFT (Costo Financiero Total)</strong>, entonces ya incluye impuestos y debes poner <code>true</code>. Si el dato es una <strong>TNA</strong> o indica claramente "Comisión X% + IVA", debes poner <code>false</code> para que el sistema le sume el 21%.</li>
+                      <li>
+                        <code>comisionBase</code>: (Número decimal) La tarifa de
+                        procesamiento por usar el medio de cobro (ej: 1.5).
+                      </li>
+                      <li>
+                        <code>comisionFinanc</code>: (Número decimal) El recargo
+                        extra del banco por ofrecer cuotas (ej: 14.8). Si es en
+                        1 pago, usa <strong>0</strong>.
+                      </li>
+                      <li>
+                        <code>incluyeIVABase</code> y{" "}
+                        <code>incluyeIVAFinanc</code>: (Booleanos: true/false).{" "}
+                        <strong>¡Importante!</strong> Si el dato de comisión que
+                        te pasó el banco es el{" "}
+                        <strong>CFT (Costo Financiero Total)</strong>, entonces
+                        ya incluye impuestos y debes poner <code>true</code>. Si
+                        el dato es una <strong>TNA</strong> o indica claramente
+                        "Comisión X% + IVA", debes poner <code>false</code> para
+                        que el sistema le sume el 21%.
+                      </li>
                     </ul>
                   </li>
 
-                  <li><strong>Promociones (Opcionales - Importantes para Marketing):</strong>
-                    <p className="text-xs text-indigo-700 my-1 bg-indigo-50 p-2 rounded"><strong>Diferenciar Promo vs Habitual:</strong> Una opción "Habitual" está disponible siempre para todos (ej: Débito MercadoPago o Visa Crédito 1 pago). Una "Promoción" (marcada con <code>esPromocion: true</code>) es un acuerdo específico que usualmente tiene un banco, un descuento para el cliente, un tope de reintegro y fechas límite (ej: MODO BNA 20% OFF Jueves).</p>
+                  <li>
+                    <strong>
+                      Promociones (Opcionales - Importantes para Marketing):
+                    </strong>
+                    <p className="text-xs text-indigo-700 my-1 bg-indigo-50 p-2 rounded">
+                      <strong>Diferenciar Promo vs Habitual:</strong> Una opción
+                      "Habitual" está disponible siempre para todos (ej: Débito
+                      MercadoPago o Visa Crédito 1 pago). Una "Promoción"
+                      (marcada con <code>esPromocion: true</code>) es un acuerdo
+                      específico que usualmente tiene un banco, un descuento
+                      para el cliente, un tope de reintegro y fechas límite (ej:
+                      MODO BNA 20% OFF Jueves).
+                    </p>
                     <ul className="list-circle pl-5 mt-1 text-gray-600 space-y-1">
-                      <li><code>esPromocion</code>: (true/false) Define si este objeto es una promoción destacada.</li>
-                      <li><code>porcentaje_descuento_cliente</code>: (Número decimal) Ej: 20 (Para un 20% OFF). Es solo visual para el cliente.</li>
-                      <li><code>tope_reintegro</code>: (Número) El monto máximo en pesos que le devuelven al cliente. Ej: 5000.</li>
-                      <li><code>tipo_tope</code>: (Texto) Puede ser exactamente <strong>"por_transaccion"</strong> (el cliente tiene ese límite de reintegro en cada compra individual) o <strong>"por_mes"</strong> (es el límite total que le devolverá el banco ese mes calendario, independientemente de si hace 1 o 10 compras).</li>
+                      <li>
+                        <code>esPromocion</code>: (true/false) Define si este
+                        objeto es una promoción destacada.
+                      </li>
+                      <li>
+                        <code>porcentaje_descuento_cliente</code>: (Número
+                        decimal) Ej: 20 (Para un 20% OFF). Es solo visual para
+                        el cliente.
+                      </li>
+                      <li>
+                        <code>tope_reintegro</code>: (Número) El monto máximo en
+                        pesos que le devuelven al cliente. Ej: 5000.
+                      </li>
+                      <li>
+                        <code>tipo_tope</code>: (Texto) Puede ser exactamente{" "}
+                        <strong>"por_transaccion"</strong> (el cliente tiene ese
+                        límite de reintegro en cada compra individual) o{" "}
+                        <strong>"por_mes"</strong> (es el límite total que le
+                        devolverá el banco ese mes calendario,
+                        independientemente de si hace 1 o 10 compras).
+                      </li>
                     </ul>
                   </li>
 
-                  <li><strong>Vigencia e Información Adicional (Opcionales):</strong>
+                  <li>
+                    <strong>
+                      Vigencia e Información Adicional (Opcionales):
+                    </strong>
                     <ul className="list-circle pl-5 mt-1 text-gray-600 space-y-1">
-                      <li><code>dias_semana</code>: (Arreglo de números) Días que está activo. 0 es Domingo y 6 es Sábado. Ej: <code>[4, 5, 6]</code> (Jue, Vie, Sab). Si lo omites, por defecto aplicará todos los días.</li>
-                      <li><code>fecha_inicio</code> y <code>fecha_fin</code>: (Texto) Fechas límite en formato "YYYY-MM-DD". Ej: "2024-05-30".</li>
-                      <li><code>diasAcreditacion</code>: (Número) Días que tarda en entrarte la plata.</li>
-                      <li><code>instrucciones</code>: (Texto) Indicación para el vendedor. Ej: "Cobrar con el posnet verde".</li>
-                      <li><code>categoriaProducto</code>: (Texto) Ej: "Indumentaria".</li>
+                      <li>
+                        <code>dias_semana</code>: (Arreglo de números) Días que
+                        está activo. 0 es Domingo y 6 es Sábado. Ej:{" "}
+                        <code>[4, 5, 6]</code> (Jue, Vie, Sab). Si lo omites,
+                        por defecto aplicará todos los días.
+                      </li>
+                      <li>
+                        <code>fecha_inicio</code> y <code>fecha_fin</code>:
+                        (Texto) Fechas límite en formato "YYYY-MM-DD". Ej:
+                        "2024-05-30".
+                      </li>
+                      <li>
+                        <code>diasAcreditacion</code>: (Número) Días que tarda
+                        en entrarte la plata.
+                      </li>
+                      <li>
+                        <code>instrucciones</code>: (Texto) Indicación para el
+                        vendedor. Ej: "Cobrar con el posnet verde".
+                      </li>
+                      <li>
+                        <code>categoriaProducto</code>: (Texto) Ej:
+                        "Indumentaria".
+                      </li>
                     </ul>
                   </li>
                 </ul>
@@ -3323,7 +3499,7 @@
                   Ejemplo de Código JSON Listo para Copiar
                 </h4>
                 <pre className="bg-gray-800 text-green-400 p-4 rounded-lg overflow-x-auto text-xs font-mono">
-{`[
+                  {`[
   {
     "medioCobro": "PayWay",
     "medioPago": "Tarjeta de Débito",
@@ -3357,7 +3533,12 @@
 ]`}
                 </pre>
                 <p className="text-sm mt-4">
-                  Una vez que tengas tu JSON, simplemente pégalo en el cuadro de texto de "Carga Masiva de Datos" o guárdalo como archivo <code>.json</code> y súbelo. El sistema validará fila por fila y te avisará si hay algún error (por ejemplo, si te faltó un dato obligatorio). Solo se guardarán los datos si no hay errores.
+                  Una vez que tengas tu JSON, simplemente pégalo en el cuadro de
+                  texto de "Carga Masiva de Datos" o guárdalo como archivo{" "}
+                  <code>.json</code> y súbelo. El sistema validará fila por fila
+                  y te avisará si hay algún error (por ejemplo, si te faltó un
+                  dato obligatorio). Solo se guardarán los datos si no hay
+                  errores.
                 </p>
               </div>
             ),
@@ -3634,9 +3815,7 @@
             const oldIncluyeIVA =
               m.incluyeIVA !== undefined ? m.incluyeIVA : false;
             const incluyeIVABase =
-              m.incluyeIVABase !== undefined
-                ? m.incluyeIVABase
-                : oldIncluyeIVA;
+              m.incluyeIVABase !== undefined ? m.incluyeIVABase : oldIncluyeIVA;
             const incluyeIVAFinanc =
               m.incluyeIVAFinanc !== undefined
                 ? m.incluyeIVAFinanc
@@ -3650,8 +3829,7 @@
               fecha_fin: m.fecha_fin || "",
               dias_semana: m.dias_semana || [0, 1, 2, 3, 4, 5, 6],
               categoriaProducto: m.categoriaProducto || "",
-              porcentaje_descuento_cliente:
-                m.porcentaje_descuento_cliente || 0,
+              porcentaje_descuento_cliente: m.porcentaje_descuento_cliente || 0,
               tope_reintegro: m.tope_reintegro || 0,
               tipo_tope: m.tipo_tope || "por_transaccion",
               fecha_ultima_edicion:
@@ -3690,15 +3868,18 @@
           try {
             const response = await fetch("/api/methods", {
               headers: {
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
-              }
+                "Cache-Control": "no-cache",
+                Pragma: "no-cache",
+              },
             });
             if (!response.ok) throw new Error("Network response was not ok");
             const data = await response.json();
             await processAndSetMethods(data);
           } catch (error) {
-            console.warn("Error fetching from API, attempting local fallback:", error);
+            console.warn(
+              "Error fetching from API, attempting local fallback:",
+              error,
+            );
             // Fallback to localStorage for static hosts like GitHub Pages
             const localData = localStorage.getItem("appPaymentMethods");
             if (localData) {
@@ -3709,7 +3890,7 @@
                 setMethods(initialPaymentMethods);
               }
             } else {
-               setMethods(initialPaymentMethods);
+              setMethods(initialPaymentMethods);
             }
           } finally {
             setLoading(false);
@@ -3723,7 +3904,10 @@
         const saveMethods = async (newMethods) => {
           // ALWAYS save locally first as a fallback for static hosting
           try {
-            localStorage.setItem("appPaymentMethods", JSON.stringify(newMethods));
+            localStorage.setItem(
+              "appPaymentMethods",
+              JSON.stringify(newMethods),
+            );
           } catch (e) {
             console.error("Local storage full or inaccessible", e);
           }
@@ -3739,7 +3923,10 @@
             });
             if (!response.ok) throw new Error("Network response was not ok");
           } catch (error) {
-            console.warn("API Guardado falló. Los datos solo se guardaron localmente.", error);
+            console.warn(
+              "API Guardado falló. Los datos solo se guardaron localmente.",
+              error,
+            );
             throw error; // Throw so caller can handle UI feedback
           }
         };
@@ -3761,7 +3948,9 @@
             await saveMethods(methods);
             alert("Datos guardados en el servidor exitosamente.");
           } catch (e) {
-            alert("La aplicación está funcionando en modo local (ej. GitHub Pages). Tus datos se han guardado de forma segura en este navegador.\n\nPara verlos en otro dispositivo, usa el botón 'Exportar Copia de Seguridad' y cárgalos allí.");
+            alert(
+              "La aplicación está funcionando en modo local (ej. GitHub Pages). Tus datos se han guardado de forma segura en este navegador.\n\nPara verlos en otro dispositivo, usa el botón 'Exportar Copia de Seguridad' y cárgalos allí.",
+            );
           } finally {
             setLoading(false);
           }
@@ -3882,10 +4071,15 @@
                 onPull={handleForcePull}
                 onPush={handleForcePush}
                 onExport={() => {
-                  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(activeMethods, null, 2));
-                  const dlAnchorElem = document.createElement('a');
-                  dlAnchorElem.setAttribute("href",     dataStr     );
-                  dlAnchorElem.setAttribute("download", "medios_de_cobro_backup.json");
+                  const dataStr =
+                    "data:text/json;charset=utf-8," +
+                    encodeURIComponent(JSON.stringify(activeMethods, null, 2));
+                  const dlAnchorElem = document.createElement("a");
+                  dlAnchorElem.setAttribute("href", dataStr);
+                  dlAnchorElem.setAttribute(
+                    "download",
+                    "medios_de_cobro_backup.json",
+                  );
                   dlAnchorElem.click();
                 }}
               />
