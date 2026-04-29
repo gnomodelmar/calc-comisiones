@@ -15,6 +15,10 @@
     ></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   </head>
   <body>
     <div id="root"></div>
@@ -22,6 +26,20 @@
       const { useState, useEffect, useMemo } = React;
       // lucide is globally available but the structure might be different in UMD build
       // We access icons directly from lucide object in the component to be safe
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyCxV_PLACEHOLDER_USER_NEEDS_TO_PROVIDE",
+        authDomain: "calc-comisiones-fb.firebaseapp.com",
+        projectId: "calc-comisiones-fb",
+        storageBucket: "calc-comisiones-fb.appspot.com",
+        messagingSenderId: "484196191637",
+        appId: "1:484196191637:web:2c83a15a3a2c5a2c4d6f03",
+      };
+
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const db = firebase.firestore();
 
       // --- Logic ---
       const calculatePrice = (netAmount, method) => {
@@ -3866,21 +3884,16 @@
         // Fetch data
         const fetchMethods = async () => {
           try {
-            const response = await fetch("/api/methods", {
-              headers: {
-                "Cache-Control": "no-cache",
-                Pragma: "no-cache",
-              },
-            });
-            if (!response.ok) throw new Error("Network response was not ok");
-            const data = await response.json();
-            await processAndSetMethods(data);
+            const docRef = db.collection("appData").doc("paymentMethods");
+            const docSnap = await docRef.get();
+            if (docSnap.exists) {
+              const data = docSnap.data().methods || [];
+              await processAndSetMethods(data);
+            } else {
+              setMethods(initialPaymentMethods);
+            }
           } catch (error) {
-            console.warn(
-              "Error fetching from API, attempting local fallback:",
-              error,
-            );
-            // Fallback to localStorage for static hosts like GitHub Pages
+            console.error("Error fetching from Firebase Firestore:", error);
             const localData = localStorage.getItem("appPaymentMethods");
             if (localData) {
               try {
@@ -3902,7 +3915,6 @@
         }, []);
 
         const saveMethods = async (newMethods) => {
-          // ALWAYS save locally first as a fallback for static hosting
           try {
             localStorage.setItem(
               "appPaymentMethods",
@@ -3912,22 +3924,15 @@
             console.error("Local storage full or inaccessible", e);
           }
 
-          // Try saving to server
           try {
-            const response = await fetch("/api/methods", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(newMethods),
-            });
-            if (!response.ok) throw new Error("Network response was not ok");
+            const docRef = db.collection("appData").doc("paymentMethods");
+            await docRef.set({ methods: newMethods });
           } catch (error) {
-            console.warn(
-              "API Guardado falló. Los datos solo se guardaron localmente.",
+            console.error(
+              "Firebase Guardado falló. Los datos solo se guardaron localmente.",
               error,
             );
-            throw error; // Throw so caller can handle UI feedback
+            throw error;
           }
         };
 
