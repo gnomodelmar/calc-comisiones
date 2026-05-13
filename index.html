@@ -2884,12 +2884,15 @@
                   final. La matemática detrás funciona así:
                 </p>
                 <div className="bg-gray-100 p-4 rounded-lg text-sm font-mono my-2 overflow-x-auto">
-                  1. Comisión Efectiva = (Comisión Base + IVA si aplica) +
-                  (Comisión Financiera + IVA si aplica)
+                  1. Comisión con IVA = Base * (1.21 si no incluye) + Financiera
+                  * (1.21 si no incluye)
                   <br />
-                  2. Monto Final a Cobrar al Cliente = Monto Neto / ( 1 -
-                  (Comisión Efectiva / 100) )<br />
-                  3. Valor de cada Cuota = Monto Final / Cantidad de Cuotas
+                  2. Monto a Cargar en Sistema = Monto Neto / ( 1 - (Comisiones
+                  a nuestro cargo / 100) )<br />
+                  3. Precio Final Cliente = Monto a Cargar * ( 1 + (Comisiones a
+                  cargo del cliente / 100) )<br />
+                  4. Valor de cada Cuota = Precio Final Cliente / Cantidad de
+                  Cuotas
                 </div>
                 <ul className="list-disc pl-5 space-y-2">
                   <li>
@@ -3207,12 +3210,22 @@
                       sistema calculará un 21% extra sobre ese valor.
                     </li>
                     <li>
+                      <strong>A cargo de:</strong> Define quién soporta la
+                      comisión: <br />- <strong>Nosotros:</strong> Se calcula
+                      inversamente sobre tu Monto Neto y el total se lo "pasas"
+                      al cliente dentro del precio base de venta. <br />-{" "}
+                      <strong>Cliente:</strong> Se suma directamente al precio y
+                      el vendedor no lo incluye en el importe que ingresa en la
+                      terminal al generar el cobro (como es el caso de algunos
+                      CFT).
+                    </li>
+                    <li>
                       <strong>Comisión Financiera (%):</strong> El costo extra
                       por ofrecer cuotas. Si es 1 pago, suele ser 0%.
                     </li>
                     <li>
-                      <strong>Incluye IVA (Financiera):</strong> Igual que la
-                      base.
+                      <strong>Incluye IVA y Cargo (Financiera):</strong>{" "}
+                      Funciona igual que la comisión base.
                     </li>
                   </ul>
 
