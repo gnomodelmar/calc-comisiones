@@ -43,20 +43,39 @@
 
       // --- Logic ---
       const calculatePrice = (netAmount, method) => {
-        if (!netAmount) return 0;
+        if (!netAmount)
+          return { precioCobroNosotros: 0, precioFinalCliente: 0 };
 
         const base = parseFloat(method.comisionBase) || 0;
         const financ = parseFloat(method.comisionFinanc) || 0;
+
+        const baseACargo = method.baseACargo || "nosotros";
+        const financACargo = method.financACargo || "nosotros";
 
         // Logic:
         // Apply IVA separately if not included
         let baseConIVA = method.incluyeIVABase ? base : base * 1.21;
         let financConIVA = method.incluyeIVAFinanc ? financ : financ * 1.21;
-        let effectiveCommission = baseConIVA + financConIVA;
 
-        if (effectiveCommission >= 100) return 0; // Prevent division by zero or negative
+        // Monto que soportamos nosotros (se calcula inverso)
+        let commissionNosotros = 0;
+        if (baseACargo === "nosotros") commissionNosotros += baseConIVA;
+        if (financACargo === "nosotros") commissionNosotros += financConIVA;
 
-        return netAmount / (1 - effectiveCommission / 100);
+        if (commissionNosotros >= 100)
+          return { precioCobroNosotros: 0, precioFinalCliente: 0 }; // Prevent division by zero
+
+        const precioCobroNosotros = netAmount / (1 - commissionNosotros / 100);
+
+        // Monto que soporta el cliente (se recarga directo)
+        let commissionCliente = 0;
+        if (baseACargo === "cliente") commissionCliente += baseConIVA;
+        if (financACargo === "cliente") commissionCliente += financConIVA;
+
+        const precioFinalCliente =
+          precioCobroNosotros * (1 + commissionCliente / 100);
+
+        return { precioCobroNosotros, precioFinalCliente };
       };
 
       const formatCurrency = (amount) => {
@@ -89,6 +108,8 @@
           tipo_tope: "por_transaccion",
           fecha_ultima_edicion: new Date().toISOString(),
           esPromocion: false,
+          baseACargo: "nosotros",
+          financACargo: "nosotros",
         },
         {
           id: 2,
@@ -111,6 +132,8 @@
           tipo_tope: "por_transaccion",
           fecha_ultima_edicion: new Date().toISOString(),
           esPromocion: false,
+          baseACargo: "nosotros",
+          financACargo: "nosotros",
         },
       ];
 
@@ -345,6 +368,8 @@
       const ResultCard = ({
         method,
         price,
+        precioCobroNosotros,
+        precioFinalCliente,
         effectiveCommission,
         isBestOverall,
         alternatives = [],
@@ -413,18 +438,31 @@
             </div>
 
             <div className="mt-2 mb-3 bg-gray-50 p-3 rounded-md border border-gray-100">
-              <div className="text-xs text-gray-500 mb-0.5">
-                Monto final a cobrar
+              <div className="text-xs text-gray-500 mb-0.5 font-semibold text-indigo-700">
+                Precio Final Cliente (Estimado)
               </div>
-              <div className="text-3xl font-bold text-gray-900">
-                {price > 0 ? formatCurrency(price) : "$0.00"}
+              <div className="text-3xl font-bold text-indigo-900">
+                {precioFinalCliente > 0
+                  ? formatCurrency(precioFinalCliente)
+                  : "$0.00"}
               </div>
-              <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                <LucideIcon name="Percent" size={12} />
-                Comisión aplicada:{" "}
-                <span className="font-semibold text-gray-700">
-                  {effectiveCommission.toFixed(2)}%
-                </span>
+              <div className="text-xs font-semibold text-gray-700 mt-2 mb-0.5 flex items-center gap-1">
+                <LucideIcon name="SmartphoneNfc" size={12} />
+                Monto a cargar en el sistema (Cobro)
+              </div>
+              <div className="text-lg font-bold text-gray-800">
+                {precioCobroNosotros > 0
+                  ? formatCurrency(precioCobroNosotros)
+                  : "$0.00"}
+              </div>
+              <div className="text-xs text-gray-500 mt-2 flex flex-col gap-0.5">
+                <div className="flex items-center gap-1">
+                  <LucideIcon name="Percent" size={10} />
+                  <span>
+                    Comisión soportada:{" "}
+                    <strong>{effectiveCommission.toFixed(2)}%</strong>
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -576,14 +614,26 @@
                           <span className="font-bold text-gray-800">
                             {alt.method.medioCobro}
                           </span>
-                          <span className="font-bold text-gray-900">
-                            {formatCurrency(alt.price)}
+                          <span
+                            className="font-bold text-indigo-900"
+                            title="Precio Final Cliente (Estimado)"
+                          >
+                            {formatCurrency(alt.precioFinalCliente)}
                           </span>
                         </div>
-                        <div className="text-gray-500 text-xs mb-2">
-                          {alt.method.banco !== "Todos"
-                            ? alt.method.banco
-                            : "Todos los bancos"}
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-gray-500 text-xs">
+                            {alt.method.banco !== "Todos"
+                              ? alt.method.banco
+                              : "Todos los bancos"}
+                          </span>
+                          <span
+                            className="text-gray-600 font-semibold text-xs flex items-center gap-1"
+                            title="Monto a Cargar en Sistema (Cobro)"
+                          >
+                            <LucideIcon name="SmartphoneNfc" size={10} />
+                            {formatCurrency(alt.precioCobroNosotros)}
+                          </span>
                         </div>
 
                         {alt.method.porcentaje_descuento_cliente > 0 && (
@@ -752,7 +802,10 @@
           let overallBestPrice = Infinity;
 
           filteredMethods.forEach((method) => {
-            const price = calculatePrice(netAmount, method);
+            const { precioCobroNosotros, precioFinalCliente } = calculatePrice(
+              netAmount,
+              method,
+            );
 
             // Calculate Effective Commission strictly for display
             const base = parseFloat(method.comisionBase) || 0;
@@ -761,8 +814,11 @@
             let financConIVA = method.incluyeIVAFinanc ? financ : financ * 1.21;
             let effectiveCommission = baseConIVA + financConIVA;
 
-            if (price > 0 && price < overallBestPrice) {
-              overallBestPrice = price;
+            if (
+              precioFinalCliente > 0 &&
+              precioFinalCliente < overallBestPrice
+            ) {
+              overallBestPrice = precioFinalCliente;
             }
 
             if (!groupedByCuota[method.cuotas]) {
@@ -770,7 +826,9 @@
             }
             groupedByCuota[method.cuotas].push({
               method,
-              price,
+              price: precioFinalCliente, // Keep 'price' for sorting/legacy compatibility
+              precioCobroNosotros,
+              precioFinalCliente,
               effectiveCommission,
             });
           });
@@ -899,10 +957,10 @@
           normalOptions.forEach((item) => {
             const method = item.method;
             textToCopy += `💳 *${method.medioCobro}* - ${method.medioPago}\n`;
-            textToCopy += `Total: ${formatCurrency(item.price)}\n`;
+            textToCopy += `Total: ${formatCurrency(item.precioFinalCliente)}\n`;
 
             if (method.cuotas > 1) {
-              const cuotaAmount = item.price / method.cuotas;
+              const cuotaAmount = item.precioFinalCliente / method.cuotas;
               textToCopy += `👉 ${method.cuotas} cuotas de ${formatCurrency(cuotaAmount)}\n`;
             }
             textToCopy += `\n`;
@@ -915,10 +973,10 @@
             promoOptions.forEach((item) => {
               const method = item.method;
               textToCopy += `💳 *${method.medioCobro}* (${method.banco}) - ${method.medioPago}\n`;
-              textToCopy += `Total: ${formatCurrency(item.price)}\n`;
+              textToCopy += `Total: ${formatCurrency(item.precioFinalCliente)}\n`;
 
               if (method.cuotas > 1) {
-                const cuotaAmount = item.price / method.cuotas;
+                const cuotaAmount = item.precioFinalCliente / method.cuotas;
                 textToCopy += `👉 ${method.cuotas} cuotas de ${formatCurrency(cuotaAmount)}\n`;
               }
 
@@ -1134,6 +1192,8 @@
                       key={`${item.method.id}-${item.method.cuotas}`}
                       method={item.method}
                       price={item.price}
+                      precioCobroNosotros={item.precioCobroNosotros}
+                      precioFinalCliente={item.precioFinalCliente}
                       effectiveCommission={item.effectiveCommission}
                       isBestOverall={item.isBestOverall}
                       alternatives={catGroup.alternatives}
