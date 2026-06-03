@@ -22,7 +22,19 @@
   </head>
   <body>
     <div id="root"></div>
-    <div style="position: fixed; top: 5px; left: 5px; font-size: 10px; color: rgba(0,0,0,0.3); z-index: 9999; pointer-events: none;">v1.0.1</div>
+    <div
+      style="
+        position: fixed;
+        top: 5px;
+        left: 5px;
+        font-size: 10px;
+        color: rgba(0, 0, 0, 0.3);
+        z-index: 9999;
+        pointer-events: none;
+      "
+    >
+      v1.0.1
+    </div>
     <script type="text/babel">
       const { useState, useEffect, useMemo } = React;
       // lucide is globally available but the structure might be different in UMD build
@@ -1242,6 +1254,8 @@
           comisionFinanc: 0,
           incluyeIVABase: false,
           incluyeIVAFinanc: false,
+          baseACargo: "nosotros",
+          financACargo: "nosotros",
           diasAcreditacion: 0,
           instrucciones: "",
           fecha_inicio: "",
@@ -1572,6 +1586,8 @@
             id: undefined,
             marketingNotes: "",
             marketingImages: [],
+            baseACargo: method.baseACargo || "nosotros",
+            financACargo: method.financACargo || "nosotros",
           });
           setEditingId(null);
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1714,6 +1730,21 @@
                       />
                       Incluye IVA
                     </label>
+                    <label className="flex items-center text-sm text-gray-700 mt-2">
+                      <select
+                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                        value={formData.baseACargo || "nosotros"}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            baseACargo: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="nosotros">Nosotros</option>
+                        <option value="cliente">Cliente</option>
+                      </select>
+                    </label>
                   </div>
                 </div>
                 <div className="col-span-1">
@@ -1747,6 +1778,21 @@
                         }
                       />
                       Incluye IVA
+                    </label>
+                    <label className="flex items-center text-sm text-gray-700 mt-2">
+                      <select
+                        className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                        value={formData.financACargo || "nosotros"}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            financACargo: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="nosotros">Nosotros</option>
+                        <option value="cliente">Cliente</option>
+                      </select>
                     </label>
                   </div>
                 </div>
@@ -3917,6 +3963,8 @@
               ...m,
               incluyeIVABase,
               incluyeIVAFinanc,
+              baseACargo: m.baseACargo || "nosotros",
+              financACargo: m.financACargo || "nosotros",
               fecha_inicio: m.fecha_inicio || "",
               fecha_fin: m.fecha_fin || "",
               dias_semana: m.dias_semana || [0, 1, 2, 3, 4, 5, 6],
