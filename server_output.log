@@ -1,0 +1,9 @@
+
+> start
+> npx serve .
+
+ INFO  Accepting connections at http://localhost:37429
+ HTTP  6/4/2026 7:07:14 PM ::1 GET /
+ HTTP  6/4/2026 7:07:14 PM ::1 Returned 200 in 430 ms
+ HTTP  6/4/2026 7:07:19 PM ::1 GET /
+ HTTP  6/4/2026 7:07:19 PM ::1 Returned 200 in 2 ms

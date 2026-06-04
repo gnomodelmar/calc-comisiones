@@ -62,13 +62,25 @@
         const base = parseFloat(method.comisionBase) || 0;
         const financ = parseFloat(method.comisionFinanc) || 0;
 
+        const baseClienteVal = parseFloat(method.comisionBaseCliente) || base;
+        const financClienteVal =
+          parseFloat(method.comisionFinancCliente) || financ;
+
         const baseACargo = method.baseACargo || "nosotros";
         const financACargo = method.financACargo || "nosotros";
 
         // Logic:
-        // Apply IVA separately if not included
+        // Apply IVA separately if not included (for real cost)
         let baseConIVA = method.incluyeIVABase ? base : base * 1.21;
         let financConIVA = method.incluyeIVAFinanc ? financ : financ * 1.21;
+
+        // Apply IVA for client if not included (same flag logic is usually used for both, or we assume it applies)
+        let baseClienteConIVA = method.incluyeIVABase
+          ? baseClienteVal
+          : baseClienteVal * 1.21;
+        let financClienteConIVA = method.incluyeIVAFinanc
+          ? financClienteVal
+          : financClienteVal * 1.21;
 
         // Monto que soportamos nosotros (se calcula inverso)
         let commissionNosotros = 0;
@@ -82,8 +94,9 @@
 
         // Monto que soporta el cliente (se recarga directo)
         let commissionCliente = 0;
-        if (baseACargo === "cliente") commissionCliente += baseConIVA;
-        if (financACargo === "cliente") commissionCliente += financConIVA;
+        if (baseACargo === "cliente") commissionCliente += baseClienteConIVA;
+        if (financACargo === "cliente")
+          commissionCliente += financClienteConIVA;
 
         const precioFinalCliente =
           precioCobroNosotros * (1 + commissionCliente / 100);
@@ -108,6 +121,8 @@
           banco: "Todos",
           comisionBase: 4.5,
           comisionFinanc: 0,
+          comisionBaseCliente: 4.5,
+          comisionFinancCliente: 0,
           incluyeIVABase: false,
           incluyeIVAFinanc: false,
           diasAcreditacion: 0,
@@ -123,6 +138,7 @@
           esPromocion: false,
           baseACargo: "nosotros",
           financACargo: "nosotros",
+          esMedioNoSeguro: false,
         },
         {
           id: 2,
@@ -132,6 +148,8 @@
           banco: "Todos",
           comisionBase: 1.97,
           comisionFinanc: 0,
+          comisionBaseCliente: 1.97,
+          comisionFinancCliente: 0,
           incluyeIVABase: false,
           incluyeIVAFinanc: false,
           diasAcreditacion: 0,
@@ -147,6 +165,7 @@
           esPromocion: false,
           baseACargo: "nosotros",
           financACargo: "nosotros",
+          esMedioNoSeguro: false,
         },
       ];
 
@@ -364,7 +383,11 @@
             <div className="hidden sm:flex flex-col text-right">
               <span className="text-xs text-gray-500">Sesión</span>
               <span className="text-sm font-bold text-gray-800 capitalize">
-                {role === "seller" ? "Vendedor" : role}
+                {role === "seller"
+                  ? "Vendedor"
+                  : role === "cobrador"
+                    ? "Cobrador"
+                    : role}
               </span>
             </div>
             <button
@@ -386,6 +409,7 @@
         effectiveCommission,
         isBestOverall,
         alternatives = [],
+        role,
       }) => {
         const [showAlternatives, setShowAlternatives] = useState(false);
         const [showInstructions, setShowInstructions] = useState(false);
@@ -459,24 +483,28 @@
                   ? formatCurrency(precioFinalCliente)
                   : "$0.00"}
               </div>
-              <div className="text-xs font-semibold text-gray-700 mt-2 mb-0.5 flex items-center gap-1">
-                <LucideIcon name="SmartphoneNfc" size={12} />
-                Monto a cargar en el sistema (Cobro)
-              </div>
-              <div className="text-lg font-bold text-gray-800">
-                {precioCobroNosotros > 0
-                  ? formatCurrency(precioCobroNosotros)
-                  : "$0.00"}
-              </div>
-              <div className="text-xs text-gray-500 mt-2 flex flex-col gap-0.5">
-                <div className="flex items-center gap-1">
-                  <LucideIcon name="Percent" size={10} />
-                  <span>
-                    Comisión soportada:{" "}
-                    <strong>{effectiveCommission.toFixed(2)}%</strong>
-                  </span>
-                </div>
-              </div>
+              {role !== "seller" && (
+                <>
+                  <div className="text-xs font-semibold text-gray-700 mt-2 mb-0.5 flex items-center gap-1">
+                    <LucideIcon name="SmartphoneNfc" size={12} />
+                    Monto a cargar en el sistema (Cobro)
+                  </div>
+                  <div className="text-lg font-bold text-gray-800">
+                    {precioCobroNosotros > 0
+                      ? formatCurrency(precioCobroNosotros)
+                      : "$0.00"}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-2 flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1">
+                      <LucideIcon name="Percent" size={10} />
+                      <span>
+                        Comisión soportada:{" "}
+                        <strong>{effectiveCommission.toFixed(2)}%</strong>
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {method.esPromocion && (
@@ -498,6 +526,12 @@
                         (Tope: ${method.tope_reintegro})
                       </span>
                     )}
+                    {method.cuotas > 1 &&
+                      parseFloat(method.comisionFinancCliente) === 0 && (
+                        <div className="text-blue-800 font-bold mt-1 text-xs bg-blue-100 inline-block px-1.5 py-0.5 rounded">
+                          ✨ Sin interés de financiamiento
+                        </div>
+                      )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-blue-700 ml-6">
@@ -640,13 +674,15 @@
                               ? alt.method.banco
                               : "Todos los bancos"}
                           </span>
-                          <span
-                            className="text-gray-600 font-semibold text-xs flex items-center gap-1"
-                            title="Monto a Cargar en Sistema (Cobro)"
-                          >
-                            <LucideIcon name="SmartphoneNfc" size={10} />
-                            {formatCurrency(alt.precioCobroNosotros)}
-                          </span>
+                          {role !== "seller" && (
+                            <span
+                              className="text-gray-600 font-semibold text-xs flex items-center gap-1"
+                              title="Monto a Cargar en Sistema (Cobro)"
+                            >
+                              <LucideIcon name="SmartphoneNfc" size={10} />
+                              {formatCurrency(alt.precioCobroNosotros)}
+                            </span>
+                          )}
                         </div>
 
                         {alt.method.porcentaje_descuento_cliente > 0 && (
@@ -675,14 +711,16 @@
                             />
                             {alt.method.diasAcreditacion} días
                           </div>
-                          <div className="flex items-center gap-1">
-                            <LucideIcon
-                              name="Percent"
-                              size={12}
-                              className="text-gray-400"
-                            />
-                            {alt.effectiveCommission.toFixed(2)}%
-                          </div>
+                          {role !== "seller" && (
+                            <div className="flex items-center gap-1">
+                              <LucideIcon
+                                name="Percent"
+                                size={12}
+                                className="text-gray-400"
+                              />
+                              {alt.effectiveCommission.toFixed(2)}%
+                            </div>
+                          )}
                         </div>
                         {alt.method.instrucciones && (
                           <div className="mt-2 text-xs text-gray-500 italic">
@@ -699,7 +737,7 @@
         );
       };
 
-      const CalculatorView = ({ methods }) => {
+      const CalculatorView = ({ methods, role }) => {
         const [precioBase, setPrecioBase] = useState("");
         const [porcentajeInflado, setPorcentajeInflado] = useState("");
 
@@ -708,6 +746,7 @@
         const [selectedCuota, setSelectedCuota] = useState("Todas");
         const [onlyPromosToday, setOnlyPromosToday] = useState(false);
         const [onlyInstallments, setOnlyInstallments] = useState(false);
+        const [showInsecure, setShowInsecure] = useState(false);
         const [copied, setCopied] = useState(false);
 
         const montoNeto = useMemo(() => {
@@ -755,6 +794,11 @@
 
           // Filter methods
           const filteredMethods = methods.filter((m) => {
+            // 0. Security filter
+            if (!showInsecure && m.esMedioNoSeguro) {
+              return false;
+            }
+
             // 1. Bank filter
             if (
               selectedBank !== "Todos" &&
@@ -813,6 +857,7 @@
 
           const groupedByCuota = {};
           let overallBestPrice = Infinity;
+          let overallBestCost = Infinity;
 
           filteredMethods.forEach((method) => {
             const { precioCobroNosotros, precioFinalCliente } = calculatePrice(
@@ -832,6 +877,13 @@
               precioFinalCliente < overallBestPrice
             ) {
               overallBestPrice = precioFinalCliente;
+            }
+
+            if (
+              precioCobroNosotros > 0 &&
+              precioCobroNosotros < overallBestCost
+            ) {
+              overallBestCost = precioCobroNosotros;
             }
 
             if (!groupedByCuota[method.cuotas]) {
@@ -863,7 +915,14 @@
             const categoriesForCuota = [];
             Object.keys(byMedioPago).forEach((category) => {
               const items = byMedioPago[category];
-              items.sort((a, b) => a.price - b.price);
+              if (role === "cobrador") {
+                // sort by lowest cost for company
+                items.sort(
+                  (a, b) => a.precioCobroNosotros - b.precioCobroNosotros,
+                );
+              } else {
+                items.sort((a, b) => a.price - b.price);
+              }
 
               const bestOption = items[0];
               const alternatives = items.slice(1);
@@ -876,15 +935,28 @@
             });
 
             // Sort categories by the best option's price so the cheapest overall appears first
-            categoriesForCuota.sort(
-              (a, b) => a.bestOption.price - b.bestOption.price,
-            );
+            if (role === "cobrador") {
+              categoriesForCuota.sort(
+                (a, b) =>
+                  a.bestOption.precioCobroNosotros -
+                  b.bestOption.precioCobroNosotros,
+              );
+            } else {
+              categoriesForCuota.sort(
+                (a, b) => a.bestOption.price - b.bestOption.price,
+              );
+            }
 
             // Mark badges on the bestOption of each category
             categoriesForCuota.forEach((catGroup, idx) => {
               const item = catGroup.bestOption;
-              item.isBestOverall =
-                Math.abs(item.price - overallBestPrice) < 0.01;
+              if (role === "cobrador") {
+                item.isBestOverall =
+                  Math.abs(item.precioCobroNosotros - overallBestCost) < 0.01;
+              } else {
+                item.isBestOverall =
+                  Math.abs(item.price - overallBestPrice) < 0.01;
+              }
               // Every top-level card is the best in its category, so we mark it if it's not the absolute best
               item.isBestInCategory = !item.isBestOverall;
             });
@@ -911,6 +983,7 @@
           isFlexible,
           onlyPromosToday,
           onlyInstallments,
+          showInsecure,
         ]);
 
         const handleCopyOptions = () => {
@@ -966,10 +1039,25 @@
 
           let textToCopy = `*Opciones de Pago*\n\n`;
 
-          // Format normal options
+          // Deduplicate normal options (group by medioPago and keep lowest price)
+          const bestNormalOptionsMap = new Map();
           normalOptions.forEach((item) => {
+            const key = item.method.medioPago;
+            if (!bestNormalOptionsMap.has(key)) {
+              bestNormalOptionsMap.set(key, item);
+            } else {
+              const existing = bestNormalOptionsMap.get(key);
+              if (item.precioFinalCliente < existing.precioFinalCliente) {
+                bestNormalOptionsMap.set(key, item);
+              }
+            }
+          });
+          const bestNormalOptions = Array.from(bestNormalOptionsMap.values());
+
+          // Format normal options
+          bestNormalOptions.forEach((item) => {
             const method = item.method;
-            textToCopy += `💳 *${method.medioCobro}* - ${method.medioPago}\n`;
+            textToCopy += `💳 *${method.medioPago}*\n`;
             textToCopy += `Total: ${formatCurrency(item.precioFinalCliente)}\n`;
 
             if (method.cuotas > 1) {
@@ -991,6 +1079,12 @@
               if (method.cuotas > 1) {
                 const cuotaAmount = item.precioFinalCliente / method.cuotas;
                 textToCopy += `👉 ${method.cuotas} cuotas de ${formatCurrency(cuotaAmount)}\n`;
+                if (
+                  parseFloat(method.comisionFinancCliente) === 0 &&
+                  method.esPromocion
+                ) {
+                  textToCopy += `✨ *Sin interés de financiamiento*\n`;
+                }
               }
 
               if (method.porcentaje_descuento_cliente > 0) {
@@ -1070,6 +1164,17 @@
                   />
                   <span className="text-sm font-medium text-orange-800">
                     Solo cuotas (+1)
+                  </span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showInsecure}
+                    onChange={(e) => setShowInsecure(e.target.checked)}
+                    className="w-4 h-4 text-gray-500 rounded border-gray-300 focus:ring-gray-500"
+                  />
+                  <span className="text-sm font-medium text-gray-800">
+                    Mostrar medios no seguros
                   </span>
                 </label>
               </div>
@@ -1210,6 +1315,7 @@
                       effectiveCommission={item.effectiveCommission}
                       isBestOverall={item.isBestOverall}
                       alternatives={catGroup.alternatives}
+                      role={role}
                     />
                   );
                 })}
@@ -1252,6 +1358,8 @@
           banco: "Todos",
           comisionBase: 0,
           comisionFinanc: 0,
+          comisionBaseCliente: "",
+          comisionFinancCliente: "",
           incluyeIVABase: false,
           incluyeIVAFinanc: false,
           baseACargo: "nosotros",
@@ -1266,6 +1374,7 @@
           tope_reintegro: 0,
           tipo_tope: "por_transaccion",
           esPromocion: false,
+          esMedioNoSeguro: false,
         });
 
         const resetForm = () => {
@@ -1276,6 +1385,8 @@
             banco: "Todos",
             comisionBase: 0,
             comisionFinanc: 0,
+            comisionBaseCliente: "",
+            comisionFinancCliente: "",
             incluyeIVABase: false,
             incluyeIVAFinanc: false,
             diasAcreditacion: 0,
@@ -1288,6 +1399,7 @@
             tope_reintegro: 0,
             tipo_tope: "por_transaccion",
             esPromocion: false,
+            esMedioNoSeguro: false,
           });
           setEditingId(null);
         };
@@ -1495,6 +1607,14 @@
                 banco: item.banco,
                 comisionBase: item.comisionBase,
                 comisionFinanc: item.comisionFinanc,
+                comisionBaseCliente:
+                  item.comisionBaseCliente !== undefined
+                    ? item.comisionBaseCliente
+                    : item.comisionBase,
+                comisionFinancCliente:
+                  item.comisionFinancCliente !== undefined
+                    ? item.comisionFinancCliente
+                    : item.comisionFinanc,
                 incluyeIVABase: !!item.incluyeIVABase,
                 incluyeIVAFinanc: !!item.incluyeIVAFinanc,
                 diasAcreditacion:
@@ -1517,6 +1637,7 @@
                 tipo_tope: item.tipo_tope || "por_transaccion",
                 fecha_ultima_edicion: new Date().toISOString(),
                 esPromocion: !!item.esPromocion,
+                esMedioNoSeguro: !!item.esMedioNoSeguro,
                 marketingNotes: item.marketingNotes || "",
                 marketingImages: item.marketingImages || [],
               });
@@ -1562,8 +1683,28 @@
 
         const handleSubmit = (e) => {
           e.preventDefault();
+
+          let comisionBaseCliente = formData.comisionBaseCliente;
+          if (
+            comisionBaseCliente === "" ||
+            comisionBaseCliente === null ||
+            comisionBaseCliente === undefined
+          ) {
+            comisionBaseCliente = formData.comisionBase;
+          }
+          let comisionFinancCliente = formData.comisionFinancCliente;
+          if (
+            comisionFinancCliente === "" ||
+            comisionFinancCliente === null ||
+            comisionFinancCliente === undefined
+          ) {
+            comisionFinancCliente = formData.comisionFinanc;
+          }
+
           const timestampedData = {
             ...formData,
+            comisionBaseCliente: parseFloat(comisionBaseCliente),
+            comisionFinancCliente: parseFloat(comisionFinancCliente),
             fecha_ultima_edicion: new Date().toISOString(),
           };
           if (editingId) {
@@ -1588,6 +1729,7 @@
             marketingImages: [],
             baseACargo: method.baseACargo || "nosotros",
             financACargo: method.financACargo || "nosotros",
+            esMedioNoSeguro: method.esMedioNoSeguro || false,
           });
           setEditingId(null);
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1629,14 +1771,30 @@
                     ? "Editar Medio de Cobro"
                     : "Agregar Nuevo Medio de Cobro"}
                 </h2>
-                {editingId && (
-                  <button
-                    onClick={resetForm}
-                    className="text-sm text-gray-500 hover:text-gray-700 underline"
-                  >
-                    Cancelar edición
-                  </button>
-                )}
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center text-sm font-bold text-orange-700 bg-orange-50 px-3 py-1.5 rounded-lg border border-orange-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="mr-2 w-4 h-4 text-orange-600 rounded border-orange-300 focus:ring-orange-500"
+                      checked={formData.esMedioNoSeguro}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          esMedioNoSeguro: e.target.checked,
+                        })
+                      }
+                    />
+                    Medio no seguro
+                  </label>
+                  {editingId && (
+                    <button
+                      onClick={resetForm}
+                      className="text-sm text-gray-500 hover:text-gray-700 underline"
+                    >
+                      Cancelar edición
+                    </button>
+                  )}
+                </div>
               </div>
 
               <form
@@ -1731,7 +1889,25 @@
                       Incluye IVA
                     </label>
                   </div>
-                  <label className="block text-sm font-medium text-gray-700 mt-2 mb-1">
+
+                  <label className="block text-sm font-medium text-gray-700 mt-3 mb-1">
+                    Comisión Base CLIENTE (%)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Igual a la Com. Base"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none bg-indigo-50 border-indigo-100"
+                    value={formData.comisionBaseCliente}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        comisionBaseCliente: e.target.value,
+                      })
+                    }
+                  />
+
+                  <label className="block text-sm font-medium text-gray-700 mt-3 mb-1">
                     ¿Quién soporta la Comisión Base?
                   </label>
                   <select
@@ -1783,7 +1959,25 @@
                       Incluye IVA
                     </label>
                   </div>
-                  <label className="block text-sm font-medium text-gray-700 mt-2 mb-1">
+
+                  <label className="block text-sm font-medium text-gray-700 mt-3 mb-1">
+                    Comisión Financiera CLIENTE (%)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="Igual a la Com. Financiera"
+                    className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none bg-indigo-50 border-indigo-100"
+                    value={formData.comisionFinancCliente}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        comisionFinancCliente: e.target.value,
+                      })
+                    }
+                  />
+
+                  <label className="block text-sm font-medium text-gray-700 mt-3 mb-1">
                     ¿Quién soporta la Comisión Financiera?
                   </label>
                   <select
@@ -2268,6 +2462,7 @@
         const [searchTerm, setSearchTerm] = useState("");
         const [showActive, setShowActive] = useState(true);
         const [showUpcoming, setShowUpcoming] = useState(true);
+        const [showInsecure, setShowInsecure] = useState(false);
         const [expandedPromoId, setExpandedPromoId] = useState(null);
         const [viewMode, setViewMode] = useState("list"); // "list" | "calendar"
         const [tooltipData, setTooltipData] = useState(null);
@@ -2287,6 +2482,7 @@
         const filteredPromotions = useMemo(() => {
           return methods.filter((m) => {
             if (!m.esPromocion) return false;
+            if (!showInsecure && m.esMedioNoSeguro) return false;
 
             const status = getPromoStatus(m);
             if (status === "expired") return false;
@@ -2471,6 +2667,17 @@
                             Próximas
                           </span>
                         </label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={showInsecure}
+                            onChange={(e) => setShowInsecure(e.target.checked)}
+                            className="w-4 h-4 text-gray-500 rounded border-gray-300 focus:ring-gray-500"
+                          />
+                          <span className="text-sm font-medium text-gray-700">
+                            Mostrar medios no seguros
+                          </span>
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -2571,6 +2778,14 @@
                                               ? "cuota"
                                               : "cuotas"}
                                           </div>
+                                          {promo.cuotas > 1 &&
+                                            parseFloat(
+                                              promo.comisionFinancCliente,
+                                            ) === 0 && (
+                                              <div className="flex items-center gap-1.5 text-xs text-blue-800 font-bold bg-blue-100 px-2 py-1 rounded">
+                                                ✨ Sin interés de financiamiento
+                                              </div>
+                                            )}
                                         </div>
                                       </div>
 
@@ -2898,8 +3113,10 @@
                 <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded mt-4">
                   <p className="text-sm text-yellow-800">
                     <strong>Tip de Uso:</strong> Dependiendo de tu rol en la
-                    empresa (Vendedor, Marketing, Admin), puede que no veas
-                    algunas de estas pestañas.
+                    empresa (Vendedor, Cobrador, Marketing, Admin), puede que no
+                    veas algunas de estas pestañas, o que la información (como
+                    las comisiones en la calculadora) varíe para proteger la
+                    rentabilidad real.
                   </p>
                 </div>
               </div>
@@ -3291,6 +3508,14 @@
                   <h5 className="font-bold mb-2">Sección 1: Identificación</h5>
                   <ul className="list-disc pl-5 space-y-1 text-sm">
                     <li>
+                      <strong>Medio no seguro (Checkbox superior):</strong> Si
+                      se tilda, esta opción será catalogada como "no segura"
+                      (por ejemplo para evitar desconocimientos de compra) y se
+                      ocultará por defecto para todos en el sistema a menos que
+                      activen manualmente la opción de mostrar medios no
+                      seguros.
+                    </li>
+                    <li>
                       <strong>Medio de Cobro:</strong> La plataforma que procesa
                       el pago (ej. Nave, Payway, MercadoPago, MODO). Puedes
                       elegir o escribir uno nuevo.
@@ -3318,6 +3543,14 @@
                       plataforma por el servicio de procesar el pago.
                     </li>
                     <li>
+                      <strong>Comisión Base CLIENTE (%):</strong> Este es un
+                      valor opcional. Si lo dejas en blanco, usará el mismo que
+                      la Comisión Base. Pero si la plataforma te cobra 1.8% pero
+                      vos al cliente le queres recargar fijo un 5%, aca pones
+                      5%. El sistema usará esto para calcular lo que ve el
+                      Vendedor, ocultando la rentabilidad real de la empresa.
+                    </li>
+                    <li>
                       <strong>Incluye IVA (Base):</strong> Si marcas esto, el
                       sistema usa el % tal cual. Si lo dejas desmarcado, el
                       sistema calculará un 21% extra sobre ese valor.
@@ -3333,6 +3566,12 @@
                     <li>
                       <strong>Comisión Financiera (%):</strong> El costo extra
                       por ofrecer cuotas. Si es 1 pago, suele ser 0%.
+                    </li>
+                    <li>
+                      <strong>Comisión Financiera CLIENTE (%):</strong> Al igual
+                      que la base, si quieres que el cliente absorba un recargo
+                      distinto al costo real de financiación que tú pagas,
+                      colócalo aquí.
                     </li>
                     <li>
                       <strong>
@@ -3784,6 +4023,16 @@
             return;
           }
 
+          if (selectedProfile === "cobrador") {
+            if (password === "cobrador123") {
+              localStorage.setItem("appRole", "cobrador");
+              setRole("cobrador");
+            } else {
+              setError("Contraseña incorrecta");
+            }
+            return;
+          }
+
           if (selectedProfile === "marketing") {
             if (password === "mkt123") {
               localStorage.setItem("appRole", "marketing");
@@ -3812,6 +4061,13 @@
             icon: "Store",
             desc: "Acceso a Calculadora, Promociones y Novedades",
             requiresPassword: false,
+          },
+          {
+            id: "cobrador",
+            title: "Soy Cobrador",
+            icon: "SmartphoneNfc",
+            desc: "Acceso a Calculadora, Promociones y Novedades",
+            requiresPassword: true,
           },
           {
             id: "marketing",
@@ -3977,10 +4233,21 @@
                 ? m.incluyeIVAFinanc
                 : oldIncluyeIVA;
 
+            const comisionBaseCliente =
+              m.comisionBaseCliente !== undefined
+                ? m.comisionBaseCliente
+                : m.comisionBase;
+            const comisionFinancCliente =
+              m.comisionFinancCliente !== undefined
+                ? m.comisionFinancCliente
+                : m.comisionFinanc;
+
             return {
               ...m,
               incluyeIVABase,
               incluyeIVAFinanc,
+              comisionBaseCliente,
+              comisionFinancCliente,
               baseACargo: m.baseACargo || "nosotros",
               financACargo: m.financACargo || "nosotros",
               fecha_inicio: m.fecha_inicio || "",
@@ -3993,6 +4260,7 @@
               fecha_ultima_edicion:
                 m.fecha_ultima_edicion || new Date().toISOString(),
               esPromocion: m.esPromocion || false,
+              esMedioNoSeguro: m.esMedioNoSeguro || false,
               deletedAt: m.deletedAt || null,
               marketingNotes: m.marketingNotes || "",
               marketingImages: m.marketingImages || [],
@@ -4191,7 +4459,7 @@
             />
 
             {view === "calculator" && (
-              <CalculatorView methods={activeMethods} />
+              <CalculatorView methods={activeMethods} role={role} />
             )}
             {view === "promotions" && (
               <PromotionsView methods={activeMethods} />
