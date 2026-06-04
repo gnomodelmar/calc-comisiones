@@ -3323,22 +3323,22 @@
                       sistema calculará un 21% extra sobre ese valor.
                     </li>
                     <li>
-                      <strong>A cargo de:</strong> Define quién soporta la
-                      comisión: <br />- <strong>Nosotros:</strong> Se calcula
-                      inversamente sobre tu Monto Neto y el total se lo "pasas"
-                      al cliente dentro del precio base de venta. <br />-{" "}
-                      <strong>Cliente:</strong> Se suma directamente al precio y
-                      el vendedor no lo incluye en el importe que ingresa en la
-                      terminal al generar el cobro (como es el caso de algunos
-                      CFT).
+                      <strong>¿Quién soporta la Comisión Base?</strong>
+                      <br />- <strong>Nosotros:</strong> Se calcula inversamente
+                      sobre tu Monto Neto (el costo lo asume el comercio).{" "}
+                      <br />- <strong>Cliente:</strong> Se suma directamente al
+                      precio final, pero no se incluye en el monto que vos pasás
+                      por la terminal.
                     </li>
                     <li>
                       <strong>Comisión Financiera (%):</strong> El costo extra
                       por ofrecer cuotas. Si es 1 pago, suele ser 0%.
                     </li>
                     <li>
-                      <strong>Incluye IVA y Cargo (Financiera):</strong>{" "}
-                      Funciona igual que la comisión base.
+                      <strong>
+                        Incluye IVA y ¿Quién soporta? (Financiera):
+                      </strong>{" "}
+                      Funciona exactamente igual que la comisión base.
                     </li>
                   </ul>
 
@@ -3566,6 +3566,14 @@
                         "Comisión X% + IVA", debes poner <code>false</code> para
                         que el sistema le sume el 21%.
                       </li>
+                      <li>
+                        <code>baseACargo</code> y <code>financACargo</code>:
+                        (Texto). Define quién asume el costo. Usa{" "}
+                        <strong>"nosotros"</strong> (el comercio absorbe el
+                        costo, calculado sobre el neto) o{" "}
+                        <strong>"cliente"</strong> (se recarga directamente al
+                        precio final).
+                      </li>
                     </ul>
                   </li>
 
@@ -3653,6 +3661,8 @@
     "comisionFinanc": 0,
     "incluyeIVABase": false,
     "incluyeIVAFinanc": false,
+    "baseACargo": "nosotros",
+    "financACargo": "nosotros",
     "diasAcreditacion": 1,
     "esPromocion": false
   },
@@ -3661,10 +3671,12 @@
     "medioPago": "Tarjeta de Crédito",
     "banco": "Macro",
     "cuotas": 6,
-    "comisionBase": 1.9,
-    "comisionFinanc": 25.5,
+    "comisionBase": 1.8,
+    "comisionFinanc": 9.84,
     "incluyeIVABase": false,
-    "incluyeIVAFinanc": false,
+    "incluyeIVAFinanc": true,
+    "baseACargo": "nosotros",
+    "financACargo": "cliente",
     "diasAcreditacion": 2,
     "esPromocion": true,
     "porcentaje_descuento_cliente": 20,
