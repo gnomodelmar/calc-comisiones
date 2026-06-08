@@ -1039,10 +1039,10 @@
 
           let textToCopy = `*Opciones de Pago*\n\n`;
 
-          // Deduplicate normal options (group by medioPago and keep lowest price)
+          // Deduplicate normal options (group by medioPago + cuotas and keep lowest price)
           const bestNormalOptionsMap = new Map();
           normalOptions.forEach((item) => {
-            const key = item.method.medioPago;
+            const key = `${item.method.medioPago}-${item.method.cuotas}`;
             if (!bestNormalOptionsMap.has(key)) {
               bestNormalOptionsMap.set(key, item);
             } else {
@@ -1057,7 +1057,11 @@
           // Format normal options
           bestNormalOptions.forEach((item) => {
             const method = item.method;
-            textToCopy += `💳 *${method.medioPago}*\n`;
+            if (method.cuotas > 1) {
+              textToCopy += `💳 *${method.medioPago} (${method.cuotas} cuotas)*\n`;
+            } else {
+              textToCopy += `💳 *${method.medioPago}*\n`;
+            }
             textToCopy += `Total: ${formatCurrency(item.precioFinalCliente)}\n`;
 
             if (method.cuotas > 1) {
