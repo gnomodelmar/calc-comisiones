@@ -35,7 +35,15 @@
     >
       v1.0.2
     </div>
-    <script type="text/babel">
+    <script>
+      Babel.registerPreset('env-plus-react', {
+        presets: [
+          [Babel.availablePresets['env'], { modules: false }],
+          [Babel.availablePresets['react'], { runtime: 'classic' }]
+        ]
+      });
+    </script>
+    <script type="text/babel" data-type="module" data-presets="env-plus-react">
       const { useState, useEffect, useMemo } = React;
       // lucide is globally available but the structure might be different in UMD build
       // We access icons directly from lucide object in the component to be safe
